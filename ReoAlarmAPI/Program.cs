@@ -1,3 +1,8 @@
+using ReoAlarmAPI.Clients;
+using ReoAlarmAPI.Services;
+using ReoAlarmAPI.Utils;
+using ReoAlarmModels.Utils;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +11,27 @@ builder.Services.AddControllers();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Add settings as singleton
+builder.Services.AddSingleton<ISettings, Settings>();
+
+// Add Reolink Auth token handler
+builder.Services.AddHttpClient<ReolinkAuthService>((provider, client) =>
+{
+    client.BaseAddress = new Uri(provider.GetService<ISettings>()!.ReolinkURL!);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{ // Skip SSL errors for locally hosted service
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+});
+
+// Add reolink client
+builder.Services.AddHttpClient<ReolinkClient>((provider, client) =>
+{
+    client.BaseAddress = new Uri(provider.GetService<ISettings>()!.ReolinkURL!);
+}).AddHttpMessageHandler<ReolinkAuthService>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{ // Skip SSL errors for locally hosted service
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+});
 
 var app = builder.Build();
 
