@@ -1,9 +1,13 @@
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
+using ReoAlarmModels.Utils;
 using Reolink.Auth;
+using ReoAlarmAPI.Utils;
 
 namespace ReoAlarmAPI.Services;
 
-public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache)
+public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISettings settings)
 {
     public async Task<string> GetAuthTokenAsync()
     {
@@ -11,20 +15,36 @@ public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache)
         {
             return token ?? throw new ArgumentNullException(nameof(token));
         }
+        
+        var requestPayload = GetRequestPayload(settings.Username, settings.Password)
+            .CreatePayloadArray();
+        
+        var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=Login", requestPayload);
+        
+        var rawJson = await response.Content.ReadAsStringAsync();
+        
+        var result = JsonSerializer.Deserialize<List<ReolinkAuthResponse>>(rawJson);
 
-        var loginData = new[]
-        {
-            new ReolinkAuthRequest("0,", "admin", "123")
-        };
+        var newToken = result?[0]?.Value?.Token;
+        
+        // Add 30 second buffer to lease time
+        var leaseTime = Math.Max(0, (newToken?.LeaseTime ?? 0) - 30);
 
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=Login", loginData);
+        memoryCache.Set("ReolinkAuthToken", newToken?.Name,TimeSpan.FromSeconds(leaseTime));
 
-        var result = await response.Content.ReadFromJsonAsync<List<ReolinkAuthResponse>>();
-
-        var newToken = result?[0]?.Token;
-
-        memoryCache.Set("ReolinkAuthToken", newToken?.Name, TimeSpan.FromSeconds(newToken?.LeaseTime ?? 0));
-
-        return memoryCache.Get("ReolinkAuthToken") as string ?? string.Empty;
+        return newToken?.Name!;
     }
+    
+    private static ReolinkAuthRequest GetRequestPayload(string? username, string? password) =>
+        new()
+        {
+            Param = new ReolinkAuthRequest.ReolinkAuthParam
+            {
+                User = new ReolinkAuthRequest.ReoLinkAuthUser
+                {
+                    Username = username!,
+                    Password = password!
+                }
+            }
+        };
 }
