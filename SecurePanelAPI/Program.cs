@@ -1,7 +1,9 @@
 using ReolinkAPI.Clients;
 using ReolinkAPI.Services;
 using SecurePanelAPI.Utils;
+using SecurePanelDb;
 using SecurePanelModels.Utils;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,12 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Add features for caching
 builder.Services.AddMemoryCache();
+
+// Add Sqlite database
+builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
+    options.UseSqlite(provider.GetService<ISettings>()!.ConnectionString!));
 
 // Add settings as singleton
 builder.Services.AddSingleton<ISettings, Settings>();

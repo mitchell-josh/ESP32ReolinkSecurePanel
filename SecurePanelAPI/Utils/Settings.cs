@@ -9,4 +9,6 @@ public class Settings(IConfiguration configuration) : ISettings
     public string? Username =>  configuration.GetValue<string>("Settings:Username");
     
     public string? Password => configuration.GetValue<string>("Settings:Password");
+    
+    public string? ConnectionString => configuration.GetValue<string>("ConnectionStrings:DefaultConnection");
 }

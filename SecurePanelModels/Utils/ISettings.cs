@@ -7,4 +7,6 @@ public interface ISettings
     string? Username { get; }
     
     string? Password { get; }
+    
+    string? ConnectionString { get; }
 }

@@ -9,9 +9,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SecurePanelDb\SecurePanelDb.csproj" />
     <ProjectReference Include="..\SecurePanelModels\SecurePanelModels.csproj" />
     <ProjectReference Include="..\ReolinkAPI\ReolinkAPI.csproj" />
   </ItemGroup>
