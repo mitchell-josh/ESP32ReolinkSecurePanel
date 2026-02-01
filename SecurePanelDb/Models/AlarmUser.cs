@@ -11,5 +11,5 @@ public class AlarmUser
     public string? Username { get; set; }
     
     [Required]
-    public string? PinCodeHash { get; set; }
+    public string? AlarmCodeHash { get; set; }
 }

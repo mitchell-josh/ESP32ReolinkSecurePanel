@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReolinkAPI.Clients;
+using SecurePanelAPI.Utils;
 
 namespace SecurePanelAPI.Controllers;
 
@@ -7,6 +9,7 @@ namespace SecurePanelAPI.Controllers;
 [Route("api/[controller]")]
 public class ChannelsController(ReolinkClient reolinkClient) : ControllerBase
 {
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpGet]
     public async Task<IActionResult> GetChannels()
     {

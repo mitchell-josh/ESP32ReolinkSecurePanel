@@ -4,6 +4,9 @@ using SecurePanelAPI.Utils;
 using SecurePanelDb;
 using SecurePanelModels.Utils;
 using Microsoft.EntityFrameworkCore;
+using SecurePanelAPI.Handlers;
+using SecurePanelAPI.Services;
+using SecurePanelModels.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +26,16 @@ builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
 
 // Add settings as singleton
 builder.Services.AddSingleton<ISettings, Settings>();
+
+// Add password hasher
+builder.Services.AddScoped<IAlarmCodeService, AlarmCodeService>();
+
+// Add simple alarm code authorisation
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AlarmCode", policy => 
+        policy.Requirements.Add(new AlarmCodeRequirement()));
+});
 
 builder.Services.AddTransient<ReolinkAuthClient>();
 
