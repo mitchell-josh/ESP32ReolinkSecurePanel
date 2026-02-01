@@ -22,7 +22,7 @@ public class ReolinkClient(HttpClient client, ISettings settings)
 
     public async Task<BuzzerAlarmResponse?> GetBuzzerAlarm(int channel)
     {
-        var requestPayload = BuzzerAlarmRequest.CreatePayload(channel).CreatePayloadArray();
+        var requestPayload = GetBuzzerAlarmRequest.CreatePayload(channel).CreatePayloadArray();
 
         var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=GetBuzzerAlarmV20", requestPayload);
 

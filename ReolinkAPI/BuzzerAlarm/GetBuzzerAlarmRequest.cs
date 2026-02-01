@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ReolinkAPI.BuzzerAlarm;
 
-public class BuzzerAlarmRequest
+public class GetBuzzerAlarmRequest
 {
     [JsonPropertyName("cmd")]
     public string Command { get; } = "GetBuzzerAlarmV20";
@@ -13,7 +13,7 @@ public class BuzzerAlarmRequest
     [JsonPropertyName("param")]
     public BuzzerAlarmParam Param { get; set; } = new();
 
-    public static BuzzerAlarmRequest CreatePayload(int channel) =>
+    public static GetBuzzerAlarmRequest CreatePayload(int channel) =>
         new()
         {
             Param =
