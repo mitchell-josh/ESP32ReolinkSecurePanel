@@ -16,4 +16,9 @@
     <ProjectReference Include="..\ReolinkAPI\ReolinkAPI.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Clients\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SecurePanelAPI.Clients;
+using ReolinkAPI.Clients;
 
 namespace SecurePanelAPI.Controllers;
 
