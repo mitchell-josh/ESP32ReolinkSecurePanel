@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using ReolinkAPI.Clients;
 using ReolinkAPI.Services;
 using SecurePanelAPI.Utils;
@@ -6,6 +7,7 @@ using SecurePanelModels.Utils;
 using Microsoft.EntityFrameworkCore;
 using SecurePanelAPI.Handlers;
 using SecurePanelAPI.Services;
+using SecurePanelDb.Models;
 using SecurePanelModels.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,15 @@ builder.Services.AddMemoryCache();
 
 // Add Sqlite database
 builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
-    options.UseSqlite(provider.GetService<ISettings>()!.ConnectionString!));
+{
+    options.UseSqlite(provider.GetService<ISettings>()!.ConnectionString!);
+    options.UseSeeding((dbContext, _) =>
+    {
+        var seeder = new SecurePanelDbSeeder(dbContext);
+        seeder.SeedData();
+        seeder.SeedDefaultUser(new PasswordHasher<AlarmUser>());
+    });
+});
 
 // Add settings as singleton
 builder.Services.AddSingleton<ISettings, Settings>();
