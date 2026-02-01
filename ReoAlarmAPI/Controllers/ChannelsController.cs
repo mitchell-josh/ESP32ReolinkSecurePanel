@@ -12,12 +12,11 @@ public class ScenesController(ReolinkClient reolinkClient) : ControllerBase
     {
         try
         {
-            var scenes = await reolinkClient.GetScenesAsync();
-            return Ok(scenes);
+            var channels = await reolinkClient.GetChannelStatus();
+            return Ok(channels);
         }
         catch (Exception ex)
         {
-            // Log the error as needed
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
