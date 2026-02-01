@@ -1,15 +1,10 @@
 using System.Text.Json.Serialization;
+using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.Audio;
 
-public class AudioAlarmResponse
+public class AudioAlarmResponse() : BaseRequest()
 {
-    [JsonPropertyName("cmd")]
-    public string Command => "GetAudioAlarmV20";
-
-    [JsonPropertyName("code")]
-    public int Code => 0;
-
     [JsonPropertyName("value")]
     public AudioAlarmValue Value => new();
 }

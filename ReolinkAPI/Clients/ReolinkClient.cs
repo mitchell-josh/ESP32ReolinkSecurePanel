@@ -8,7 +8,7 @@ using SecurePanelModels.Utils;
 
 namespace ReolinkAPI.Clients;
 
-public class ReolinkClient(HttpClient client, ISettings settings)
+public class ReolinkClient(HttpClient client)
 {
     public async Task<ChannelResponse?> GetChannelStatus()
     {

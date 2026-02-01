@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.BuzzerAlarm;
 
@@ -21,4 +22,7 @@ public class BuzzerAlarm
     
     [JsonPropertyName("scheduleEnabled")]
     public int? ScheduleEnabled { get; set; }
+    
+    [JsonPropertyName("schedule")]
+    public AiSchedule? Schedule { get; set; }
 }

@@ -1,15 +1,10 @@
 using System.Text.Json.Serialization;
+using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.BuzzerAlarm;
 
-public class BuzzerAlarmResponse
+public class BuzzerAlarmResponse() : BaseRequest()
 {
-    [JsonPropertyName("cmd")]
-    public string? Command { get; set; }
-    
-    [JsonPropertyName("code")]
-    public int? Code { get; set; }
-    
     [JsonPropertyName("value")]
     public BuzzerAlarmValue? Value { get; set; }
 }

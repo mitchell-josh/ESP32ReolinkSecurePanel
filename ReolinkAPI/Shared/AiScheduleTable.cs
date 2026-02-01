@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace ReolinkAPI.Audio;
+namespace ReolinkAPI.Shared;
 
-public class AudioAlarmTable
+public class AiScheduleTable
 {
     [JsonPropertyName("AI_DOG_CAT")]
     public string? AiDogCat { get; set; }

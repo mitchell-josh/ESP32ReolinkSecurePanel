@@ -1,15 +1,10 @@
 using System.Text.Json.Serialization;
+using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.Auth;
 
-public class ReolinkAuthResponse
+public class ReolinkAuthResponse() : BaseRequest()
 {
-    [JsonPropertyName("cmd")]
-    public string? Command { get; set; }
-    
-    [JsonPropertyName("code")]
-    public int? Code { get; set; }
-
     [JsonPropertyName("value")]
     public ReolinkAuthValue? Value { get; set; }
 }

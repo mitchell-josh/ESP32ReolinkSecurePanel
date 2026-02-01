@@ -1,12 +1,12 @@
 using System.Text.Json.Serialization;
 
-namespace ReolinkAPI.Audio;
+namespace ReolinkAPI.Shared;
 
-public class AudioAlarmSchedule
+public class AiSchedule
 {
     [JsonPropertyName("channel")]
     public int? Channel { get; set; }
     
     [JsonPropertyName("table")]
-    public AudioAlarmTable? Table { get; set; }
+    public AiScheduleTable? Table { get; set; }
 }

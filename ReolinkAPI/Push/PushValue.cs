@@ -1,13 +1,16 @@
 using System.Text.Json.Serialization;
 using ReolinkAPI.Shared;
 
-namespace ReolinkAPI.Audio;
+namespace ReolinkAPI.Push;
 
-public class AudioAlarm
+public class PushValue
 {
     [JsonPropertyName("enable")]
     public bool? Enable { get; set; }
-
-    [JsonPropertyName("schedule")] 
+    
+    [JsonPropertyName("schedule")]
     public AiSchedule? Schedule { get; set; }
+    
+    [JsonPropertyName("scheduleEnable")]
+    public int? ScheduleEnable { get; set; }
 }
