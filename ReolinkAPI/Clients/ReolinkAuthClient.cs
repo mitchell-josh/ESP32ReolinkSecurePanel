@@ -1,6 +1,6 @@
-using SecurePanelAPI.Services;
+using ReolinkAPI.Services;
 
-namespace SecurePanelAPI.Clients;
+namespace ReolinkAPI.Clients;
 
 public class ReolinkAuthClient(ReolinkAuthService authService) : DelegatingHandler
 {

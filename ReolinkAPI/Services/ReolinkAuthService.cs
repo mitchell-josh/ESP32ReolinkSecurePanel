@@ -1,11 +1,10 @@
-using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
-using SecurePanelModels.Utils;
 using ReolinkAPI.Auth;
-using SecurePanelAPI.Utils;
+using ReolinkAPI.Utils;
+using SecurePanelModels.Utils;
 
-namespace SecurePanelAPI.Services;
+namespace ReolinkAPI.Services;
 
 public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISettings settings)
 {
