@@ -17,5 +17,7 @@ public class SecurePanelDbContext : DbContext
     
     public DbSet<AlarmSchemeType> AlarmSchemeTypes { get; set; }
     
+    public DbSet<Audio> Audios { get; set; }
+    
     public DbSet<Buzzer> Buzzers { get; set; }
 }

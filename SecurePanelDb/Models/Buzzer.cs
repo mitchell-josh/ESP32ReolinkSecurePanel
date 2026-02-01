@@ -19,7 +19,7 @@ public class Buzzer
     public bool? DiskFullAlert { get; set; }
     
     [Required]
-    public bool? Enable { get; set; }
+    public bool? Enabled { get; set; }
     
     [Required]
     public bool? IpConfigAlert { get; set; }
