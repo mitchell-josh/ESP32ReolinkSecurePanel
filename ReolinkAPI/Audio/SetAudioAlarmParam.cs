@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace ReolinkAPI.Audio;
 
-public class AudioAlarmParam
+public class SetAudioAlarmParam
 {
     [JsonPropertyName("enable")]
     public bool? Enable { get; set; }

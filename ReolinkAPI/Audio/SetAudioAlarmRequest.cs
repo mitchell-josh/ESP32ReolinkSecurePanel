@@ -11,5 +11,5 @@ public class SetAudioAlarmRequest
     public int Code => 0;
     
     [JsonPropertyName("param")]
-    public AudioAlarmParam? Param { get; set; }
+    public SetAudioAlarmParam? Param { get; set; }
 }

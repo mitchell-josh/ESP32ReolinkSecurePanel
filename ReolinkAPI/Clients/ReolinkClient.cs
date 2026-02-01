@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Channels;
 using ReolinkAPI.Utils;
@@ -29,5 +30,16 @@ public class ReolinkClient(HttpClient client, ISettings settings)
         var rawJson = await response.Content.ReadAsStringAsync();
         
         return JsonSerializer.Deserialize<List<BuzzerAlarmResponse>>(rawJson)?.FirstOrDefault();
+    }
+
+    public async Task<AudioAlarmResponse?> GetAudioAlarm(int channel)
+    {
+        var requestPayload = GetAudioAlarmRequest.CreatePayload(channel).CreatePayloadArray();
+        
+        var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=GetAudioAlarmV20", requestPayload);
+
+        var rawJson = await response.Content.ReadAsStringAsync();
+        
+        return JsonSerializer.Deserialize<List<AudioAlarmResponse>>(rawJson)?.FirstOrDefault();
     }
 }
