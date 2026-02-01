@@ -6,9 +6,9 @@ using SecurePanelDb;
 using SecurePanelModels.Utils;
 using Microsoft.EntityFrameworkCore;
 using SecurePanelAPI.Handlers;
+using SecurePanelAPI.Models;
 using SecurePanelAPI.Services;
 using SecurePanelDb.Models;
-using SecurePanelModels.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +31,7 @@ builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
         var seeder = new SecurePanelDbSeeder(dbContext);
         seeder.SeedData();
         seeder.SeedDefaultUser(new PasswordHasher<AlarmUser>());
+        dbContext.SaveChanges();
     });
 });
 

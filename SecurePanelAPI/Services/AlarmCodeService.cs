@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using SecurePanelAPI.Models;
 using SecurePanelDb.Models;
-using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 

@@ -1,6 +1,6 @@
 using SecurePanelDb.Models;
 
-namespace SecurePanelModels.Services;
+namespace SecurePanelAPI.Models;
 
 public interface IAlarmCodeService
 {
