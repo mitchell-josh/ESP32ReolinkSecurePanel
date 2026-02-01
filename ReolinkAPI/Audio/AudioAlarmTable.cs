@@ -5,14 +5,14 @@ namespace ReolinkAPI.Audio;
 public class AudioAlarmTable
 {
     [JsonPropertyName("AI_DOG_CAT")]
-    public int[]? AiDogCat { get; set; }
+    public string? AiDogCat { get; set; }
     
     [JsonPropertyName("AI_OTHER")]
-    public int[]? AiOther { get; set; }
+    public string? AiOther { get; set; }
     
     [JsonPropertyName("AI_PEOPLE")]
-    public int[]? AiPeople { get; set; }
+    public string? AiPeople { get; set; }
     
     [JsonPropertyName("AI_VEHICLE")]
-    public int[]? AiVehicle { get; set; }
+    public string? AiVehicle { get; set; }
 }
