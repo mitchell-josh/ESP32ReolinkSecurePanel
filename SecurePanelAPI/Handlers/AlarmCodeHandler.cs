@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using SecurePanelAPI.Services;
@@ -31,6 +32,16 @@ public class AlarmCodeHandler(
                 
                 if (result == PasswordVerificationResult.Success)
                 {
+                    var claims = new[]
+                    {
+                        new Claim(ClaimTypes.Name, alarmUser.Username!)
+                    };
+                    
+                    var identity = new ClaimsIdentity(claims, "AlarmCode");
+                    var principal = new ClaimsPrincipal(identity);
+                    
+                    httpContextAccessor!.HttpContext!.User = principal;
+                    
                     context.Succeed(requirement);
                 }
                 else if (result == PasswordVerificationResult.SuccessRehashNeeded)

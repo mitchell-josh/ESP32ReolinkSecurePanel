@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using SecurePanelAPI.Models;
+using SecurePanelDb;
 using SecurePanelDb.Models;
 
 namespace SecurePanelAPI.Services;
 
-public class AlarmCodeService : IAlarmCodeService
+public class AlarmCodeService(SecurePanelDbContext db) : IAlarmCodeService
 {
     private readonly IPasswordHasher<AlarmUser> passwordHasher = new PasswordHasher<AlarmUser>();
 
@@ -15,5 +16,22 @@ public class AlarmCodeService : IAlarmCodeService
     {
         var result = this.passwordHasher.VerifyHashedPassword(alarmUser, hashedCode, providedCode);
         return result == PasswordVerificationResult.Success;
+    }
+
+    public bool ChangeAlarmCode(string username, string newAlarmCode)
+    {
+        var alarmUser = db.AlarmUsers.SingleOrDefault(u => u.Username == username);
+
+        if (alarmUser == null)
+        {
+            return false;
+        }
+        else
+        {
+            var newHashedAlarmCode = this.passwordHasher.HashPassword(alarmUser, newAlarmCode);
+            alarmUser.AlarmCodeHash = newHashedAlarmCode;
+            db.SaveChanges();
+            return true;
+        }
     }
 }
