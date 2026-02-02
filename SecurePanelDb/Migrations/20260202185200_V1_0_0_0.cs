@@ -27,24 +27,6 @@ namespace SecurePanelDb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AlarmSchemes",
-                columns: table => new
-                {
-                    AlarmSchemeId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AlarmSchemeTypeId = table.Column<int>(type: "INTEGER", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AlarmSchemes", x => x.AlarmSchemeId);
-                    table.ForeignKey(
-                        name: "FK_AlarmSchemes_AlarmSchemes_AlarmSchemeTypeId",
-                        column: x => x.AlarmSchemeTypeId,
-                        principalTable: "AlarmSchemes",
-                        principalColumn: "AlarmSchemeId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AlarmSchemeTypes",
                 columns: table => new
                 {
@@ -72,46 +54,17 @@ namespace SecurePanelDb.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Audios",
+                name: "Channel",
                 columns: table => new
                 {
-                    AudioId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ChannelId = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AiScheduleId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false)
+                    ChannelKey = table.Column<int>(type: "INTEGER", nullable: true),
+                    ChannelName = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Audios", x => x.AudioId);
-                    table.ForeignKey(
-                        name: "FK_Audios_AiSchedules_AiScheduleId",
-                        column: x => x.AiScheduleId,
-                        principalTable: "AiSchedules",
-                        principalColumn: "AiScheduleId");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Buzzers",
-                columns: table => new
-                {
-                    BuzzerId = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AiScheduleId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Channel = table.Column<int>(type: "INTEGER", nullable: false),
-                    DiskErrorAlert = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DiskFullAlert = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    IpConfigAlert = table.Column<bool>(type: "INTEGER", nullable: false),
-                    NvrDisconnectAlert = table.Column<bool>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Buzzers", x => x.BuzzerId);
-                    table.ForeignKey(
-                        name: "FK_Buzzers_AiSchedules_AiScheduleId",
-                        column: x => x.AiScheduleId,
-                        principalTable: "AiSchedules",
-                        principalColumn: "AiScheduleId");
+                    table.PrimaryKey("PK_Channel", x => x.ChannelId);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,6 +85,102 @@ namespace SecurePanelDb.Migrations
                         column: x => x.AiScheduleId,
                         principalTable: "AiSchedules",
                         principalColumn: "AiScheduleId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AlarmSchemes",
+                columns: table => new
+                {
+                    AlarmSchemeId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AlarmSchemeTypeId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlarmSchemes", x => x.AlarmSchemeId);
+                    table.ForeignKey(
+                        name: "FK_AlarmSchemes_AlarmSchemeTypes_AlarmSchemeTypeId",
+                        column: x => x.AlarmSchemeTypeId,
+                        principalTable: "AlarmSchemeTypes",
+                        principalColumn: "AlarmSchemeTypeId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Audios",
+                columns: table => new
+                {
+                    AudioId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AiScheduleId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ChannelId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Audios", x => x.AudioId);
+                    table.ForeignKey(
+                        name: "FK_Audios_AiSchedules_AiScheduleId",
+                        column: x => x.AiScheduleId,
+                        principalTable: "AiSchedules",
+                        principalColumn: "AiScheduleId");
+                    table.ForeignKey(
+                        name: "FK_Audios_Channel_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "Channel",
+                        principalColumn: "ChannelId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Buzzers",
+                columns: table => new
+                {
+                    BuzzerId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    AiScheduleId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ChannelId = table.Column<int>(type: "INTEGER", nullable: true),
+                    DiskErrorAlert = table.Column<bool>(type: "INTEGER", nullable: false),
+                    DiskFullAlert = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IpConfigAlert = table.Column<bool>(type: "INTEGER", nullable: false),
+                    NvrDisconnectAlert = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Buzzers", x => x.BuzzerId);
+                    table.ForeignKey(
+                        name: "FK_Buzzers_AiSchedules_AiScheduleId",
+                        column: x => x.AiScheduleId,
+                        principalTable: "AiSchedules",
+                        principalColumn: "AiScheduleId");
+                    table.ForeignKey(
+                        name: "FK_Buzzers_Channel_ChannelId",
+                        column: x => x.ChannelId,
+                        principalTable: "Channel",
+                        principalColumn: "ChannelId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AlarmSchemePushes",
+                columns: table => new
+                {
+                    AlarmSchemeId = table.Column<int>(type: "INTEGER", nullable: false),
+                    PushId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AlarmSchemePushes", x => new { x.AlarmSchemeId, x.PushId });
+                    table.ForeignKey(
+                        name: "FK_AlarmSchemePushes_AlarmSchemes_AlarmSchemeId",
+                        column: x => x.AlarmSchemeId,
+                        principalTable: "AlarmSchemes",
+                        principalColumn: "AlarmSchemeId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AlarmSchemePushes_Push_PushId",
+                        column: x => x.PushId,
+                        principalTable: "Push",
+                        principalColumn: "PushId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -182,30 +231,6 @@ namespace SecurePanelDb.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "AlarmSchemePushes",
-                columns: table => new
-                {
-                    AlarmSchemeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PushId = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AlarmSchemePushes", x => new { x.AlarmSchemeId, x.PushId });
-                    table.ForeignKey(
-                        name: "FK_AlarmSchemePushes_AlarmSchemes_AlarmSchemeId",
-                        column: x => x.AlarmSchemeId,
-                        principalTable: "AlarmSchemes",
-                        principalColumn: "AlarmSchemeId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AlarmSchemePushes_Push_PushId",
-                        column: x => x.PushId,
-                        principalTable: "Push",
-                        principalColumn: "PushId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AlarmSchemeAudios_AudioId",
                 table: "AlarmSchemeAudios",
@@ -232,9 +257,19 @@ namespace SecurePanelDb.Migrations
                 column: "AiScheduleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Audios_ChannelId",
+                table: "Audios",
+                column: "ChannelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Buzzers_AiScheduleId",
                 table: "Buzzers",
                 column: "AiScheduleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Buzzers_ChannelId",
+                table: "Buzzers",
+                column: "ChannelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Push_AiScheduleId",
@@ -255,9 +290,6 @@ namespace SecurePanelDb.Migrations
                 name: "AlarmSchemePushes");
 
             migrationBuilder.DropTable(
-                name: "AlarmSchemeTypes");
-
-            migrationBuilder.DropTable(
                 name: "AlarmUsers");
 
             migrationBuilder.DropTable(
@@ -271,6 +303,12 @@ namespace SecurePanelDb.Migrations
 
             migrationBuilder.DropTable(
                 name: "Push");
+
+            migrationBuilder.DropTable(
+                name: "Channel");
+
+            migrationBuilder.DropTable(
+                name: "AlarmSchemeTypes");
 
             migrationBuilder.DropTable(
                 name: "AiSchedules");

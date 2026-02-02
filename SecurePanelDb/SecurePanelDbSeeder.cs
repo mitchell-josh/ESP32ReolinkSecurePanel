@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ReolinkAPI.Clients;
 using SecurePanelDb.Models;
 using SecurePanelDb.Seeding;
 
 namespace SecurePanelDb;
 
-public class SecurePanelDbSeeder(DbContext context)
+public class SecurePanelDbSeeder(DbContext context, ReolinkClient reolinkClient)
 {
-    public void SeedData()
+    public async Task SeedData()
     {
         AlarmSchemeTypeSeeder.SeedAlarmSchemeTypes(context);
+
+        await AlarmChannelSeeder.SeedData(context, reolinkClient);
     }
 
     public void SeedDefaultUser(IPasswordHasher<AlarmUser> hasher)

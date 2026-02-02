@@ -10,6 +10,7 @@ using SecurePanelAPI.Handlers;
 using SecurePanelAPI.Models;
 using SecurePanelAPI.Services;
 using SecurePanelDb.Models;
+using SecurePanelModels.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,17 +24,13 @@ builder.Services.AddOpenApi();
 // Add features for caching
 builder.Services.AddMemoryCache();
 
-// Add Sqlite database
+// // Add Sqlite database
 builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
 {
-    options.UseSqlite(provider.GetService<ISettings>()!.ConnectionString!);
-    options.UseSeeding((dbContext, _) =>
-    {
-        var seeder = new SecurePanelDbSeeder(dbContext);
-        seeder.SeedData();
-        seeder.SeedDefaultUser(new PasswordHasher<AlarmUser>());
-        dbContext.SaveChanges();
-    });
+    options.UseSqlite(provider.GetService<ISettings>()!.ConnectionString!)
+        .LogTo(Console.WriteLine, LogLevel.Information) 
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors();
 });
 
 builder.Services.AddScoped<IPasswordHasher<AlarmUser>, PasswordHasher<AlarmUser>>();
@@ -92,6 +89,10 @@ builder.Services.AddHttpClient<ReolinkClient>((provider, client) =>
     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
 });
 
+// Add business logic services
+builder.Services.AddScoped<IChannelService, ChannelService>();
+builder.Services.AddScoped<IChannelSettingsService, ChannelSettingsService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -108,8 +109,35 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<SecurePanelDbContext>();
-db.Database.EnsureCreated();
+// Program.cs (at the bottom, after app.Build())
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<SecurePanelDbContext>();
+    
+    // 1. Ensure schema is applied first
+    await context.Database.MigrateAsync();
+
+    // 2. Initialize your seeder with the required services
+    var reolink = services.GetRequiredService<ReolinkClient>();
+    var seeder = new SecurePanelDbSeeder(context, reolink);
+
+    // 3. Seed User (Local/Fast)
+    seeder.SeedDefaultUser(new PasswordHasher<AlarmUser>());
+
+    // 4. Seed Hardware (External/Async)
+    // Wrap this in a try-catch so an offline camera doesn't crash the app
+    try 
+    {
+        await seeder.SeedData();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Warning: Could not fetch cameras during seeding: {ex.Message}");
+    }
+
+    // 5. Final Flush
+    await context.SaveChangesAsync();
+}
 
 app.Run();

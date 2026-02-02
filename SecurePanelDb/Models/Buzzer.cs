@@ -9,8 +9,7 @@ public class Buzzer
     
     public int? AiScheduleId { get; set; }
     
-    [Required]
-    public int? Channel { get; set; }
+    public int? ChannelId { get; set; }
     
     [Required]
     public bool? DiskErrorAlert { get; set; }
@@ -28,4 +27,6 @@ public class Buzzer
     public bool? NvrDisconnectAlert { get; set; }
     
     public virtual AiSchedule? AiSchedule { get; set; }
+    
+    public virtual Channel? Channel { get; set; }
 }

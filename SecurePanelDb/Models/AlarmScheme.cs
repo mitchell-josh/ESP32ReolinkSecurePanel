@@ -9,5 +9,5 @@ public class AlarmScheme
     
     public int? AlarmSchemeTypeId { get; set; }
     
-    public virtual AlarmScheme? AlarmSchemeType { get; set; }
+    public virtual AlarmSchemeType? AlarmSchemeType { get; set; }
 }

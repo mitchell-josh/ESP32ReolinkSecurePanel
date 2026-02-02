@@ -9,8 +9,12 @@ public class Audio
     
     public int? AiScheduleId { get; set; }
     
+    public int? ChannelId { get; set; }
+    
     [Required]
     public bool? Enabled { get; set; }
     
     public virtual AiSchedule? AiSchedule { get; set; }
+    
+    public virtual Channel? Channel { get; set; }
 }

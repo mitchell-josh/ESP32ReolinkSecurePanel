@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReolinkAPI.Clients;
 using SecurePanelAPI.Utils;
+using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ChannelsController(ReolinkClient reolinkClient) : ControllerBase
+public class ChannelsController(IChannelService channelService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpGet]
@@ -15,7 +16,7 @@ public class ChannelsController(ReolinkClient reolinkClient) : ControllerBase
     {
         try
         {
-            var channels = await reolinkClient.GetChannelStatus();
+            var channels = await channelService.GetChannels();
             return Ok(channels);
         }
         catch (Exception ex)

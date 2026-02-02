@@ -143,12 +143,17 @@ namespace SecurePanelDb.Migrations
                     b.Property<int?>("AiScheduleId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ChannelId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("Enabled")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("AudioId");
 
                     b.HasIndex("AiScheduleId");
+
+                    b.HasIndex("ChannelId");
 
                     b.ToTable("Audios");
                 });
@@ -162,7 +167,7 @@ namespace SecurePanelDb.Migrations
                     b.Property<int?>("AiScheduleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Channel")
+                    b.Property<int?>("ChannelId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("DiskErrorAlert")
@@ -184,7 +189,26 @@ namespace SecurePanelDb.Migrations
 
                     b.HasIndex("AiScheduleId");
 
+                    b.HasIndex("ChannelId");
+
                     b.ToTable("Buzzers");
+                });
+
+            modelBuilder.Entity("SecurePanelDb.Models.Channel", b =>
+                {
+                    b.Property<int>("ChannelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ChannelKey")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ChannelName")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ChannelId");
+
+                    b.ToTable("Channel");
                 });
 
             modelBuilder.Entity("SecurePanelDb.Models.Push", b =>
@@ -211,7 +235,7 @@ namespace SecurePanelDb.Migrations
 
             modelBuilder.Entity("SecurePanelDb.Models.AlarmScheme", b =>
                 {
-                    b.HasOne("SecurePanelDb.Models.AlarmScheme", "AlarmSchemeType")
+                    b.HasOne("SecurePanelDb.Models.AlarmSchemeType", "AlarmSchemeType")
                         .WithMany()
                         .HasForeignKey("AlarmSchemeTypeId");
 
@@ -281,7 +305,13 @@ namespace SecurePanelDb.Migrations
                         .WithMany()
                         .HasForeignKey("AiScheduleId");
 
+                    b.HasOne("SecurePanelDb.Models.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId");
+
                     b.Navigation("AiSchedule");
+
+                    b.Navigation("Channel");
                 });
 
             modelBuilder.Entity("SecurePanelDb.Models.Buzzer", b =>
@@ -290,7 +320,13 @@ namespace SecurePanelDb.Migrations
                         .WithMany()
                         .HasForeignKey("AiScheduleId");
 
+                    b.HasOne("SecurePanelDb.Models.Channel", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId");
+
                     b.Navigation("AiSchedule");
+
+                    b.Navigation("Channel");
                 });
 
             modelBuilder.Entity("SecurePanelDb.Models.Push", b =>
