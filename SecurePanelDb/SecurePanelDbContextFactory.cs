@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
@@ -7,14 +8,21 @@ public class SecurePanelDbContextFactory : IDesignTimeDbContextFactory<SecurePan
 {
     public SecurePanelDbContext CreateDbContext(string[] args)
     {
-        throw new NotImplementedException();
+        var configuration = this.GetConfiguration();
+        
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        
+        var optionsBuilder = new DbContextOptionsBuilder<SecurePanelDbContext>();
+        optionsBuilder.UseSqlite(connectionString);
+
+        return new SecurePanelDbContext(optionsBuilder.Options);
     }
-    //
-    // private IConfigurationRoot GetConfiguration()
-    // {
-    //     return new ConfigurationBuilder()
-    //         .SetBasePath(Directory.GetCurrentDirectory())
-    //         .AddJsonFile("appsettings.json")
-    //         .Build();
-    // }
+    
+    private IConfigurationRoot GetConfiguration()
+    {
+        return new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
+    }
 }
