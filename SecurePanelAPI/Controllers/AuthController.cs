@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurePanelAPI.Models;
 using SecurePanelAPI.Services;
 using SecurePanelAPI.Utils;
 
@@ -7,10 +8,10 @@ namespace SecurePanelAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(AlarmCodeService alarmCodeService) : ControllerBase
+public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpGet]
+    [HttpPost(nameof(ChangeAlarmCode))]
     public IActionResult ChangeAlarmCode([FromQuery] string newAlarmCode)
     {
         try
