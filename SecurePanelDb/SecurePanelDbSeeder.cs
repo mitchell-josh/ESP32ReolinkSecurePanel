@@ -14,12 +14,16 @@ public class SecurePanelDbSeeder(DbContext context)
 
     public void SeedDefaultUser(IPasswordHasher<AlarmUser> hasher)
     {
-        var defaultUser = new AlarmUser
+        if (!context.Set<AlarmUser>().Any(u => u.Username == "Admin")) 
         {
-            Username = "Admin"
-        };
-        defaultUser.AlarmCodeHash = hasher.HashPassword(defaultUser, "0000");
+            var defaultUser = new AlarmUser
+            {
+                Username = "Admin"
+            };
+            defaultUser.AlarmCodeHash = hasher.HashPassword(defaultUser, "0000");
         
-        context.Set<AlarmUser>().Add(defaultUser);
+            context.Set<AlarmUser>().Add(defaultUser);
+            
+        }
     }
 }

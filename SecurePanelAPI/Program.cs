@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ReolinkAPI.Clients;
 using ReolinkAPI.Services;
@@ -35,17 +36,40 @@ builder.Services.AddDbContext<SecurePanelDbContext>((provider, options) =>
     });
 });
 
+builder.Services.AddScoped<IPasswordHasher<AlarmUser>, PasswordHasher<AlarmUser>>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuthorizationHandler, AlarmCodeHandler>();
+
 // Add settings as singleton
 builder.Services.AddSingleton<ISettings, Settings>();
 
 // Add password hasher
 builder.Services.AddScoped<IAlarmCodeService, AlarmCodeService>();
 
+// Add alarm code authentication scheme
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = Consts.AlarmCodeScheme;
+    options.DefaultChallengeScheme = Consts.AlarmCodeScheme;
+}).AddCookie(Consts.AlarmCodeScheme, options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+});
+
 // Add simple alarm code authorisation
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AlarmCode", policy => 
-        policy.Requirements.Add(new AlarmCodeRequirement()));
+    options.AddPolicy("AlarmCode", policy =>
+    {
+        policy.AuthenticationSchemes.Add(Consts.AlarmCodeScheme);
+        policy.RequireAssertion(_ => true);
+        policy.Requirements.Add(new AlarmCodeRequirement());
+    });
 });
 
 builder.Services.AddTransient<ReolinkAuthClient>();
@@ -78,8 +102,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService<SecurePanelDbContext>();
+db.Database.EnsureCreated();
 
 app.Run();

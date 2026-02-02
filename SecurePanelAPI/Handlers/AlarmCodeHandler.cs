@@ -20,14 +20,14 @@ public class AlarmCodeHandler(
             && request.Headers.TryGetValue("X-Alarm-User", out var alarmUsername)
             && request.Headers.TryGetValue("X-Alarm-Code", out var providedPin))
         {
-            var alarmUser = db.AlarmUsers.SingleOrDefault(u => u.Username == alarmUsername);
+            var alarmUser = db.AlarmUsers.SingleOrDefault(u => u.Username == alarmUsername.ToString());
 
             if (alarmUser != null)
             {
                 var result = hasher.VerifyHashedPassword(
                     alarmUser, 
                     alarmUser.AlarmCodeHash!, 
-                    providedPin!);
+                    providedPin.ToString()!);
                 
                 if (result == PasswordVerificationResult.Success)
                 {
