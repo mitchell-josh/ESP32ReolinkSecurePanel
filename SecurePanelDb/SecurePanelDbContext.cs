@@ -26,4 +26,13 @@ public class SecurePanelDbContext : DbContext
     public DbSet<Audio> Audios { get; set; }
     
     public DbSet<Buzzer> Buzzers { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AlarmSchemeAudio>().HasKey(e => new { e.AlarmSchemeId, e.AudioId });
+        modelBuilder.Entity<AlarmSchemeBuzzer>().HasKey(e => new { e.AlarmSchemeId, e.BuzzerId });
+        modelBuilder.Entity<AlarmSchemePush>().HasKey(e => new { e.AlarmSchemeId, e.PushId });
+        
+        base.OnModelCreating(modelBuilder);
+    }
 }
