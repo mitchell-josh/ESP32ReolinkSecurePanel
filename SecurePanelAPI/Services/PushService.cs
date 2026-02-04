@@ -26,7 +26,7 @@ public class PushService(ReolinkClient reolinkClient, SecurePanelDbContext db) :
             {
                 Push = new PushValue
                 {
-                    Enable = scheme.PushEnabled,
+                    Enable = scheme.PushEnabled ? 1 : 0,
                     ScheduleEnable = 1,
                     Schedule = new AiSchedule
                     {

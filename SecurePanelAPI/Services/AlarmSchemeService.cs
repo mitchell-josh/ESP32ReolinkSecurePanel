@@ -11,7 +11,7 @@ namespace SecurePanelAPI.Services;
 
 public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
 {
-    public async Task<AlarmSchemeDto> GetAlarmScheme(AlarmSchemeDto schemeDto) 
+    public async Task<AlarmSchemeDto> GetAlarmScheme(AlarmSchemeDto schemeDto)
         => this.GetAlarmSchemeDto((await this.GetScheme(schemeDto)) ?? this.GetDefaultScheme(schemeDto));
 
     public async Task SaveAlarmScheme(AlarmSchemeDto scheme)
@@ -51,6 +51,7 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
             AlarmChannelId = scheme.AlarmChannelId,
             AlarmSchemeTypeId = scheme.AlarmSchemeTypeId,
             Enabled = scheme.Enabled,
+            PushEnabled = scheme.PushEnabled,
             Schedule = new AlarmScheduleDto
             {
                 OtherEnabled = scheme.AlarmSchedule?.OtherEnabled ?? false,

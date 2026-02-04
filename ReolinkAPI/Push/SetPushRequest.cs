@@ -3,7 +3,7 @@ using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.Push;
 
-public class SetPushRequest() : BaseRequest("SetPushV20", 0)
+public class SetPushRequest() : BaseRequest("SetPushV20")
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("param")]

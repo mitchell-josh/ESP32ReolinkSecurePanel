@@ -7,7 +7,7 @@ public class PushValue
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("enable")]
-    public bool? Enable { get; set; }
+    public int? Enable { get; set; }
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("schedule")]
