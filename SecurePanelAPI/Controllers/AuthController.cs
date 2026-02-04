@@ -7,7 +7,7 @@ using SecurePanelAPI.Utils;
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]

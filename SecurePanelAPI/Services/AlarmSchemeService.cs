@@ -33,6 +33,15 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
         await db.SaveChangesAsync();
     }
 
+    public async Task<List<AlarmSchemeTypeDto>> GetAlarmSchemeTypes()
+    {
+        return await db.AlarmSchemeTypes.Select(t => new AlarmSchemeTypeDto
+        {
+            AlarmSchemeTypeId = t.AlarmSchemeTypeId,
+            Key = t.Key,
+        }).ToListAsync();
+    }
+
     private AlarmSchemeDto GetAlarmSchemeDto(AlarmScheme scheme)
     {
         return new AlarmSchemeDto

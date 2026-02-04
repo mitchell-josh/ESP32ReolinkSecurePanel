@@ -8,7 +8,7 @@ using SecurePanelModels.Services;
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class AudioAlarmController(IAudioAlarmService audioAlarmService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]

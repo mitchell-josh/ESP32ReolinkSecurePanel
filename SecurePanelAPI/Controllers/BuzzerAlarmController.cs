@@ -8,7 +8,7 @@ using SecurePanelModels.Services;
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class BuzzerAlarmController(IBuzzerAlarmService buzzerAlarmService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]

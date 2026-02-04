@@ -1,13 +1,17 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurePanelAPI.Utils;
 using SecurePanelModels.DTOs;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : ControllerBase
 {
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
+    [HttpGet]
     public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeDto scheme)
     {
         try
@@ -21,12 +25,29 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
         }
     }
 
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
+    [HttpPost]
     public async Task<IActionResult> SaveAlarmSchedule([FromBody] AlarmSchemeDto scheme)
     {
         try
         {
             await alarmSchemeService.SaveAlarmScheme(scheme);
             return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
+    [HttpGet]
+    public async Task<IActionResult> GetAlarmSchemeTypes()
+    {
+        try
+        {
+            var result = await alarmSchemeService.GetAlarmSchemeTypes();
+            return Ok(result);
         }
         catch (Exception ex)
         {

@@ -7,7 +7,7 @@ using SecurePanelModels.Services;
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/[action]")]
 public class ChannelsController(IChannelService channelService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
