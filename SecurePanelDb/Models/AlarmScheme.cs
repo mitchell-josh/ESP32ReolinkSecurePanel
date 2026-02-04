@@ -15,6 +15,8 @@ public class AlarmScheme
     
     public required bool Enabled { get; set; }
     
+    public required bool PushEnabled { get; set; }
+    
     public required DateTime DateCreated { get; set; }
     
     public virtual AlarmSchemeType? AlarmSchemeType { get; set; }

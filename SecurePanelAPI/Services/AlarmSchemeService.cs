@@ -21,6 +21,7 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
             AlarmChannelId = scheme.AlarmChannelId!.Value!,
             AlarmSchemeTypeId = scheme.AlarmSchemeTypeId!.Value,
             Enabled = scheme.Enabled ?? false,
+            PushEnabled = scheme.PushEnabled ?? false,
             AlarmSchedule = new AlarmSchedule
             {
                 PetsEnabled = scheme.Schedule?.PetsEnabled ?? false,
@@ -69,6 +70,7 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
             DateCreated = DateTime.UtcNow,
             AlarmScheduleId = 0,
             Enabled = false,
+            PushEnabled = false,
         };
 
     private AlarmSchedule GetDefaultSchedule()

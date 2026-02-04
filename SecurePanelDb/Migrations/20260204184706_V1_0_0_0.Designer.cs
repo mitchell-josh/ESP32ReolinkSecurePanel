@@ -11,7 +11,7 @@ using SecurePanelDb;
 namespace SecurePanelDb.Migrations
 {
     [DbContext(typeof(SecurePanelDbContext))]
-    [Migration("20260204164535_V1_0_0_0")]
+    [Migration("20260204184706_V1_0_0_0")]
     partial class V1_0_0_0
     {
         /// <inheritdoc />
@@ -88,6 +88,9 @@ namespace SecurePanelDb.Migrations
 
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("PushEnabled")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("AlarmSchemeId");
 

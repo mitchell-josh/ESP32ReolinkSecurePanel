@@ -3,6 +3,7 @@ using System.Text.Json;
 using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Channels;
+using ReolinkAPI.Push;
 using ReolinkAPI.Utils;
 using SecurePanelModels.Utils;
 
@@ -53,6 +54,13 @@ public class ReolinkClient(HttpClient client)
     public async Task<bool> SetAudioAlarm(SetAudioAlarmRequest request)
     {
         var response = await client.PostAsJsonAsync("api.cgi?cmd=SetAudioAlarmV20", request.CreatePayloadArray());
+
+        return true;
+    }
+
+    public async Task<bool> SetPush(SetPushRequest request)
+    {
+        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetPushV20", request.CreatePayloadArray());
 
         return true;
     }

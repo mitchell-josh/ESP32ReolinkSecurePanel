@@ -16,6 +16,9 @@ public class AlarmSchemeDto
     
     [JsonPropertyName("enabled")]
     public bool? Enabled { get; set; }
+    
+    [JsonPropertyName("pushEnabled")]
+    public bool? PushEnabled { get; set; }
 
     [JsonPropertyName("schedule")]
     public AlarmScheduleDto? Schedule { get; set; }

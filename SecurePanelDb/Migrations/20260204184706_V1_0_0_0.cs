@@ -79,6 +79,7 @@ namespace SecurePanelDb.Migrations
                     AlarmSchemeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
                     AlarmScheduleId = table.Column<int>(type: "INTEGER", nullable: true),
                     Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PushEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastModified = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },

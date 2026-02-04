@@ -86,6 +86,9 @@ namespace SecurePanelDb.Migrations
                     b.Property<DateTime>("LastModified")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("PushEnabled")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("AlarmSchemeId");
 
                     b.HasIndex("AlarmChannelId");

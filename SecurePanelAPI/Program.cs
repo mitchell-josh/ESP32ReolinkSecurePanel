@@ -94,6 +94,7 @@ builder.Services.AddScoped<IAlarmSchemeService, AlarmSchemeService>();
 builder.Services.AddScoped<IAudioAlarmService, AudioAlarmService>();
 builder.Services.AddScoped<IBuzzerAlarmService, BuzzerAlarmService>();
 builder.Services.AddScoped<IChannelService, ChannelService>();
+builder.Services.AddScoped<IPushService, PushService>();
 
 var app = builder.Build();
 
