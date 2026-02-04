@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Clients;
 using ReolinkAPI.Shared;
@@ -11,20 +12,13 @@ namespace SecurePanelAPI.Services;
 
 public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IBuzzerAlarmService
 {
-    public async Task<bool> UpdateBuzzerAlarm(AlarmSettingsDto channel)
+    public async Task<bool> UpdateBuzzerAlarm(int channelId)
     {
-        if (!channel.ChannelId.HasValue) return false;
-        
-        var buzzerAlarm = await reolinkClient.GetBuzzerAlarm(channel.ChannelId ?? -1);
-
-        if (buzzerAlarm?.Value == null) return false;
-
-        var result = await reolinkClient.SetBuzzerAlarm(GenerateSetBuzzerRequest(buzzerAlarm, channel));
-
-        return result;
+        var scheme = this.GetScheme(channelId);
+        return await reolinkClient.SetBuzzerAlarm(GenerateSetBuzzerRequest(scheme));
     }
 
-    private static SetBuzzerAlarmRequest GenerateSetBuzzerRequest(BuzzerAlarmResponse currentSettings, AlarmSettingsDto channel)
+    private SetBuzzerAlarmRequest GenerateSetBuzzerRequest(AlarmScheme scheme)
     {
         return new SetBuzzerAlarmRequest
         {
@@ -32,25 +26,30 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
             {
                 Buzzer = new BuzzerAlarm
                 {
-                    DiskErrorAlert = currentSettings.Value!.Buzzer!.DiskErrorAlert,
-                    DiskFullAlert = currentSettings.Value!.Buzzer!.DiskFullAlert,
-                    Enable = (channel.Enabled ?? false) ? 1 : 0,
-                    IpConfigAlert = currentSettings.Value!.Buzzer!.IpConfigAlert,
-                    NvrDisconnectAlert = currentSettings.Value!.Buzzer!.NvrDisconnectAlert,
-                    ScheduleEnabled = 1,
+                    ScheduleEnabled = scheme.Enabled ? 1 : 0,
                     Schedule = new AiSchedule
                     {
-                        Channel = channel.ChannelId,
+                        Channel = scheme.AlarmChannel!.Identifier,
                         Table = new AiScheduleTable
                         {
-                            AiDogCat = HttpUtils.GetSchedule(channel?.AiSchedule.PetsEnabled ?? false),
-                            AiOther = HttpUtils.GetSchedule(channel?.AiSchedule.OtherEnabled?? false),
-                            AiPeople = HttpUtils.GetSchedule(channel?.AiSchedule.PeopleEnabled ?? false),
-                            AiVehicle = HttpUtils.GetSchedule(channel?.AiSchedule.CarsEnabled ?? false),
+                            AiDogCat = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiOther = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiPeople = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiVehicle = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
                         }
                     }
                 }
             }
         };
     }
+
+    private AlarmScheme GetScheme(int channelId)
+        => this.GetChannel(channelId)
+            .AlarmSchemes.OrderByDescending(s => s.DateCreated).First();
+    
+    private AlarmChannel GetChannel(int channelId)
+        => db.AlarmChannels
+            .Include(c => c.AlarmSchemes)
+            .Include(c => c.AlarmSchemes.Select(s => s.AlarmSchedule))
+            .Single(c => c.Identifier == channelId);
 }

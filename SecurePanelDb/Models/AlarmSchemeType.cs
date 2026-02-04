@@ -7,6 +7,6 @@ public class AlarmSchemeType
     [Key]
     public int AlarmSchemeTypeId { get; set; }
     
-    [Required]
-    public string? Key { get; set; }
+    [StringLength(50)]
+    public required string Key { get; set; }
 }

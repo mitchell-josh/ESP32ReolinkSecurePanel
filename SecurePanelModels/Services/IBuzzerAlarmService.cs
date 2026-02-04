@@ -4,5 +4,5 @@ namespace SecurePanelModels.Services;
 
 public interface IBuzzerAlarmService
 {
-    Task<bool> UpdateBuzzerAlarm(AlarmSettingsDto channel);
+    Task<bool> UpdateBuzzerAlarm(int channelId);
 }

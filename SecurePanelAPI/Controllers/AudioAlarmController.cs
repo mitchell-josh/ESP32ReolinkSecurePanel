@@ -11,11 +11,13 @@ namespace SecurePanelAPI.Controllers;
 [Route("api/[controller]")]
 public class AudioAlarmController(IAudioAlarmService audioAlarmService) : ControllerBase
 {
-    public async Task<IActionResult> UpdateAudioAlarm([FromBody] AlarmSettingsDto alarmSettings)
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
+    [HttpPost]
+    public async Task<IActionResult> UpdateAudioAlarm([FromQuery] int channelId)
     {
         try
         {
-            await audioAlarmService.UpdateAudioAlarm(alarmSettings);
+            await audioAlarmService.UpdateAudioAlarm(channelId);
             return Ok();
         }
         catch (Exception ex)

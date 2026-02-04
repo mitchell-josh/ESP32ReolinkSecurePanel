@@ -13,41 +13,32 @@ public class AlarmChannelSeeder
         await SeedAlarmChannels(context, reolinkClient);
     }
 
-    private static async Task SeedAlarmChannels(DbContext context, ReolinkClient reolinkClient)
+    private static async Task SeedAlarmChannels(DbContext db, ReolinkClient reolinkClient)
     {
-        var channelStatuses = await GetChannels(reolinkClient);
+        // Get reolink channels from reolink API
+        var reolinkChannels = await GetChannels(reolinkClient);
         
-        var existingKeys = await context.Set<Channel>().Select(c => c.Key).ToListAsync();
+        // Fetch existing keys from database
+        var existingKeys = await db.Set<AlarmChannel>().Select(c => c.Identifier).ToListAsync();
 
-        var newChannels = channelStatuses
-            .Where(cs => !existingKeys.Contains(cs.Channel))
-            .Select(cs => new Channel { Key = cs.Channel, Name = cs.Name })
-            .ToList();
-
-        if (newChannels.Any())
-        {
-            // Start a manual transaction to bypass the framework's "hanging" lock
-            using var transaction = await context.Database.BeginTransactionAsync();
-            try 
+        // Add missing keys to AlarmChannels table.
+        reolinkChannels
+            .Where(cs => !existingKeys.Contains(cs.Channel!.Value)) 
+            .Select(cs => new AlarmChannel
             {
-                context.Set<Channel>().AddRange(newChannels);
-                await context.SaveChangesAsync();
-                await transaction.CommitAsync(); // This forces SQLite to write the WAL file
-                Console.WriteLine($"[Seeder] Successfully committed {newChannels.Count} channels.");
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                Console.WriteLine($"[Seeder] Error saving channels: {ex.Message}");
-                throw;
-            }
-        }
+                Identifier = cs.Channel!.Value, 
+                Name = cs.Name ?? string.Empty, 
+                Online = cs.Online == 1
+            })
+            .ToList()
+            .ForEach(ac => db.Set<AlarmChannel>().Add(ac));
+        
+        await db.SaveChangesAsync();
     }
     
     private static async Task<List<ChannelStatuses>> GetChannels(ReolinkClient reolinkClient)
     {
         var reolinkChannels = await reolinkClient?.GetChannelStatus()!;
-
-        return reolinkChannels?.Value?.Statuses?.ToList() ?? [];
+        return reolinkChannels?.Value?.Statuses?.Where(s => s.Channel.HasValue).ToList() ?? [];
     }
 }

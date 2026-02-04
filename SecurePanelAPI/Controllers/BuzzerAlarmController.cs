@@ -13,11 +13,11 @@ public class BuzzerAlarmController(IBuzzerAlarmService buzzerAlarmService) : Con
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> UpdateBuzzerAlarm([FromBody] AlarmSettingsDto alarmSettings)
+    public async Task<IActionResult> UpdateBuzzerAlarm([FromQuery] int channelId)
     {
         try
         {
-            await buzzerAlarmService.UpdateBuzzerAlarm(alarmSettings);
+            await buzzerAlarmService.UpdateBuzzerAlarm(channelId);
             return Ok();
         }
         catch (Exception ex)

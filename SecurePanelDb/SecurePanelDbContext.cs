@@ -15,11 +15,9 @@ public class SecurePanelDbContext : DbContext
     
     public DbSet<AlarmSchemeType> AlarmSchemeTypes { get; set; }
     
-    public DbSet<AlarmSettings> AlarmSettings { get; set; }
-    
     public DbSet<AlarmUser> AlarmUsers { get; set; }
     
-    public DbSet<Channel> Channels { get; set; }
+    public DbSet<AlarmChannel> AlarmChannels { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,19 +25,5 @@ public class SecurePanelDbContext : DbContext
             .Property<DateTime>("LastModified");
         
         base.OnModelCreating(modelBuilder);
-    }
-
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
-    {
-        var entries = this.ChangeTracker
-            .Entries()
-            .Where(e => (e.State is EntityState.Added or EntityState.Modified) && (e.Entity is AlarmScheme));
-        
-        foreach (var entry in entries)
-        {
-            entry.Property("LastModified").CurrentValue = DateTime.UtcNow;
-        }
-        
-        return base.SaveChangesAsync(cancellationToken);
     }
 }

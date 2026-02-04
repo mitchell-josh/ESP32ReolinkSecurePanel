@@ -4,5 +4,5 @@ namespace SecurePanelModels.Services;
 
 public interface IAudioAlarmService
 {
-    Task<bool> UpdateAudioAlarm(AlarmSettingsDto channel);
+    Task<bool> UpdateAudioAlarm(int channelId);
 }

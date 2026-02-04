@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Clients;
@@ -12,20 +13,14 @@ namespace SecurePanelAPI.Services;
 
 public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IAudioAlarmService
 {
-    public async Task<bool> UpdateAudioAlarm(AlarmSettingsDto channel)
+    public async Task<bool> UpdateAudioAlarm(int channelId)
     {
-        if (!channel.ChannelId.HasValue) return false;
+        var scheme = this.GetScheme(channelId);
         
-        var audioAlarm = await reolinkClient.GetAudioAlarm(channel.ChannelId ?? -1);
-
-        if (audioAlarm?.Value == null) return false;
-
-        var result = await reolinkClient.SetAudioAlarm(GenerateSetAudioRequest(audioAlarm, channel));
-
-        return result;
+        return await reolinkClient.SetAudioAlarm(GenerateSetAudioRequest(scheme));
     }
 
-    private static SetAudioAlarmRequest GenerateSetAudioRequest(AudioAlarmResponse currentSettings, AlarmSettingsDto channel)
+    private static SetAudioAlarmRequest GenerateSetAudioRequest(AlarmScheme scheme)
     {
         return new SetAudioAlarmRequest
         {
@@ -34,20 +29,30 @@ public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext
                 Audio = new AudioAlarm
                 {
                     StopAlarm = 0,
-                    Enable = (channel.Enabled ?? false) ? 1 : 0,
+                    Enable = scheme.Enabled ? 1 : 0,
                     Schedule = new AiSchedule
                     {
-                        Channel = channel.ChannelId,
+                        Channel = scheme.AlarmChannel!.Identifier,
                         Table = new AiScheduleTable
                         {
-                            AiDogCat = HttpUtils.GetSchedule(channel?.AiSchedule.PetsEnabled ?? false),
-                            AiOther = HttpUtils.GetSchedule(channel?.AiSchedule.OtherEnabled?? false),
-                            AiPeople = HttpUtils.GetSchedule(channel?.AiSchedule.PeopleEnabled ?? false),
-                            AiVehicle = HttpUtils.GetSchedule(channel?.AiSchedule.CarsEnabled ?? false),
+                            AiDogCat = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiOther = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.OtherEnabled?? false),
+                            AiPeople = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PeopleEnabled ?? false),
+                            AiVehicle = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.VehicleEnabled ?? false),
                         }
                     }
                 }
             }
         };
     }
+
+    private AlarmScheme GetScheme(int channelId)
+        => this.GetChannel(channelId)
+            .AlarmSchemes.OrderByDescending(s => s.DateCreated).First();
+    
+    private AlarmChannel GetChannel(int channelId)
+        => db.AlarmChannels
+            .Include(c => c.AlarmSchemes)
+            .Include(c => c.AlarmSchemes.Select(s => s.AlarmSchedule))
+            .Single(c => c.Identifier == channelId);
 }

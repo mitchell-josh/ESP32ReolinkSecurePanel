@@ -11,37 +11,43 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
 {
     public async Task<List<ChannelDto>> GetChannels()
     {
-        return await db.Channels.Select(c => new ChannelDto
+        var channels = await db.AlarmChannels.ToListAsync();
+        
+        return channels.Select(c => new ChannelDto
         {
             ChannelName = c.Name!,
-            ChannelKey = c.Key!.Value!,
-            ChannelEnabled = false
-        }).ToListAsync();
+            ChannelKey = c.Identifier,
+            ChannelEnabled = c.Online,
+        }).ToList();
     }
 
     public async Task CreateChannels()
     {
         var response = await reolinkClient.GetChannelStatus();
-        var reolinkStatuses = response?.Value?.Statuses;
 
-        if (reolinkStatuses == null) return;
+        var reolinkStatuses = response?.Value?.Statuses
+            ?.Where(s => s.Channel.HasValue)
+            ?.ToList() ?? [];
 
-        var existingKeys = await db.Channels
-            .Select(c => c.Key)
+        if (!reolinkStatuses.Any()) return;
+
+        var existingKeys = await db.AlarmChannels
+            .Select(c => c.Identifier)
             .ToHashSetAsync();
 
         var newEntities = reolinkStatuses
-            .Where(rc => !existingKeys.Contains(rc.Channel))
-            .Select(rc => new Channel
+            .Where(rc => !existingKeys.Contains(rc.Channel!.Value))
+            .Select(rc => new AlarmChannel
             {
-                Key = rc.Channel,
-                Name = rc.Name,
+                Identifier = rc.Channel!.Value,
+                Name = rc.Name ?? string.Empty,
+                Online = rc.Online == 1
             })
             .ToList();
 
         if (newEntities.Count != 0)
         {
-            db.Channels.AddRange(newEntities);
+            db.AlarmChannels.AddRange(newEntities);
             await db.SaveChangesAsync();
         }
     }
@@ -54,16 +60,22 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
         if (reolinkStatuses == null) return;
 
         // Fetch db channels. No need for .ToList() yet, we can iterate the tracked entities
-        var dbChannels = await db.Channels.ToListAsync();
+        var dbChannels = await db.AlarmChannels.ToListAsync();
 
         bool hasChanges = false;
         foreach (var dbChannel in dbChannels)
         {
-            var reolinkMatch = reolinkStatuses.SingleOrDefault(rc => rc.Channel == dbChannel.Key);
+            var reolinkMatch = reolinkStatuses.SingleOrDefault(rc => rc.Channel == dbChannel.Identifier);
 
             if (reolinkMatch != null && !string.IsNullOrWhiteSpace(reolinkMatch.Name) && dbChannel.Name != reolinkMatch.Name)
             {
                 dbChannel.Name = reolinkMatch.Name;
+                hasChanges = true;
+            }
+
+            if (reolinkMatch != null && (dbChannel.Online != (reolinkMatch.Online == 1)))
+            {
+                dbChannel.Online = (reolinkMatch.Online != 1);
                 hasChanges = true;
             }
         }
