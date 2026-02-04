@@ -2,9 +2,9 @@ namespace SecurePanelModels.DTOs;
 
 public class ChannelDto
 {
-    public required string Name { get; set; }
+    public required string ChannelName { get; set; }
     
-    public required int ChannelId { get; set; }
+    public required int ChannelKey { get; set; }
     
-    public required bool Enabled { get; set; }
+    public required bool ChannelEnabled { get; set; }
 }

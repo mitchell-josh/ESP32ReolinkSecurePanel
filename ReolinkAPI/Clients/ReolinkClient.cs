@@ -32,7 +32,14 @@ public class ReolinkClient(HttpClient client)
         return JsonSerializer.Deserialize<List<BuzzerAlarmResponse>>(rawJson)?.FirstOrDefault();
     }
 
-    public async Task<AudioAlarmResponse?> GetAudioAlarm(int channel)
+    public async Task<bool> SetBuzzerAlarm(SetBuzzerAlarmRequest request)
+    {
+        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetBuzzerAlarmV20", request);
+
+        return true;
+    }
+
+    public async Task<Audio.AudioAlarmResponse?> GetAudioAlarm(int channel)
     {
         var requestPayload = GetAudioAlarmRequest.CreatePayload(channel).CreatePayloadArray();
         
@@ -40,6 +47,13 @@ public class ReolinkClient(HttpClient client)
 
         var rawJson = await response.Content.ReadAsStringAsync();
         
-        return JsonSerializer.Deserialize<List<AudioAlarmResponse>>(rawJson)?.FirstOrDefault();
+        return JsonSerializer.Deserialize<List<Audio.AudioAlarmResponse>>(rawJson)?.FirstOrDefault();
+    }
+
+    public async Task<bool> SetAudioAlarm(SetAudioAlarmRequest request)
+    {
+        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetAudioAlarmV20", request);
+
+        return true;
     }
 }

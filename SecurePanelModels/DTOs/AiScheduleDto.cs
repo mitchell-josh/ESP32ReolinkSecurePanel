@@ -2,11 +2,11 @@ namespace SecurePanelModels.DTOs;
 
 public class AiScheduleDto
 {
-    public bool? AiDogCat { get; set; }
+    public bool? PeopleEnabled { get; set; }
     
-    public bool? AiOther { get; set; }
+    public bool? CarsEnabled { get; set; }
     
-    public bool? AiPeople { get; set; }
+    public bool? PetsEnabled { get; set; }
     
-    public bool? AiVehicle { get; set; }
+    public bool? OtherEnabled { get; set; }
 }

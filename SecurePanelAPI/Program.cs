@@ -91,7 +91,7 @@ builder.Services.AddHttpClient<ReolinkClient>((provider, client) =>
 
 // Add business logic services
 builder.Services.AddScoped<IChannelService, ChannelService>();
-builder.Services.AddScoped<IChannelSettingsService, ChannelSettingsService>();
+builder.Services.AddScoped<IAlarmSettingsService, AlarmSettingsService>();
 
 var app = builder.Build();
 

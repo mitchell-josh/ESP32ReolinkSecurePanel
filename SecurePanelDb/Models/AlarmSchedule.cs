@@ -2,10 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SecurePanelDb.Models;
 
-public class AiSchedule
+public class AlarmSchedule
 {
     [Key]
-    public int AiScheduleId { get; set; }
+    public int AlarmScheduleId { get; set; }
     
     public bool AiDogCat { get; set; }
     

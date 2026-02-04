@@ -7,7 +7,7 @@ public class Channel
     [Key]
     public int ChannelId { get; set; }
     
-    public int? ChannelKey { get; set; }
+    public int? Key { get; set; }
     
-    public string? ChannelName { get; set; }
+    public string? Name { get; set; }
 }

@@ -16,4 +16,7 @@ public static class HttpUtils
         TEntity entity) => httpClient.PostAsJsonAsync(requestUri, entity, JsonSerialiserOptions);
 
     public static List<TEntity> CreatePayloadArray<TEntity>(this TEntity entity) where TEntity: class => [entity];
+
+    public static string GetSchedule(bool enabled) 
+        => string.Join("", new List<int>(168).Select(i => i = enabled ? 1 : 0).ToList());
 }

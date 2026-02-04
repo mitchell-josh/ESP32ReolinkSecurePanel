@@ -17,11 +17,11 @@ public class AlarmChannelSeeder
     {
         var channelStatuses = await GetChannels(reolinkClient);
         
-        var existingKeys = await context.Set<Channel>().Select(c => c.ChannelKey).ToListAsync();
+        var existingKeys = await context.Set<Channel>().Select(c => c.Key).ToListAsync();
 
         var newChannels = channelStatuses
             .Where(cs => !existingKeys.Contains(cs.Channel))
-            .Select(cs => new Channel { ChannelKey = cs.Channel, ChannelName = cs.Name })
+            .Select(cs => new Channel { Key = cs.Channel, Name = cs.Name })
             .ToList();
 
         if (newChannels.Any())

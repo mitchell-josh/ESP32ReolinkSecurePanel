@@ -7,7 +7,10 @@ public class SetAudioAlarmParam
 {
     [JsonPropertyName("enable")]
     public bool? Enable { get; set; }
+
+    [JsonPropertyName("stopAlarm")]
+    public bool? StopAlarm { get; set; }
     
-    [JsonPropertyName("schedule")]
-    public AiScheduleTable? Schedule { get; set; }
+    [JsonPropertyName("Audio")]
+    public AudioAlarm? Audio { get; set; }
 }

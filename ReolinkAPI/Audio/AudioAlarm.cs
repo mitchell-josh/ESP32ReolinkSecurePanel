@@ -6,7 +6,10 @@ namespace ReolinkAPI.Audio;
 public class AudioAlarm
 {
     [JsonPropertyName("enable")]
-    public bool? Enable { get; set; }
+    public int? Enable { get; set; }
+    
+    [JsonPropertyName("stopAlarm")]
+    public int? StopAlarm { get; set; }
 
     [JsonPropertyName("schedule")] 
     public AiSchedule? Schedule { get; set; }

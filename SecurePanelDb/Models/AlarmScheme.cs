@@ -10,4 +10,6 @@ public class AlarmScheme
     public int? AlarmSchemeTypeId { get; set; }
     
     public virtual AlarmSchemeType? AlarmSchemeType { get; set; }
+    
+    public bool? Active { get; set; }
 }
