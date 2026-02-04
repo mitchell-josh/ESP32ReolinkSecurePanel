@@ -11,14 +11,12 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
 {
     public async Task<List<ChannelDto>> GetChannels()
     {
-        var reolinkChannels = await reolinkClient.GetChannelStatus();
-        
-        return reolinkChannels?.Value?.Statuses?.Select(c => new ChannelDto
+        return await db.Channels.Select(c => new ChannelDto
         {
             ChannelName = c.Name!,
-            ChannelKey = c.Channel ?? -1,
-            ChannelEnabled = (c.Online == 1),
-        }).ToList() ?? [];
+            ChannelKey = c.Key!.Value!,
+            ChannelEnabled = false
+        }).ToListAsync();
     }
 
     public async Task CreateChannels()

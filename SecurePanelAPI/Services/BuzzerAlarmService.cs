@@ -5,10 +5,11 @@ using ReolinkAPI.Utils;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
-public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db)
+public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IBuzzerAlarmService
 {
     public async Task<bool> UpdateBuzzerAlarm(AlarmSettingsDto channel)
     {

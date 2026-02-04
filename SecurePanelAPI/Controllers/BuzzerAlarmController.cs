@@ -2,21 +2,23 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReolinkAPI.Clients;
 using SecurePanelAPI.Utils;
+using SecurePanelModels.DTOs;
+using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BuzzerAlarmController(ReolinkClient reolinkClient) : ControllerBase
+public class BuzzerAlarmController(IBuzzerAlarmService buzzerAlarmService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpGet]
-    public async Task<IActionResult> GetBuzzerAlarm([FromQuery] int channel)
+    [HttpPost]
+    public async Task<IActionResult> UpdateBuzzerAlarm([FromBody] AlarmSettingsDto alarmSettings)
     {
         try
         {
-            var buzzerAlarm = await reolinkClient.GetBuzzerAlarm(channel);
-            return Ok(buzzerAlarm);
+            await buzzerAlarmService.UpdateBuzzerAlarm(alarmSettings);
+            return Ok();
         }
         catch (Exception ex)
         {

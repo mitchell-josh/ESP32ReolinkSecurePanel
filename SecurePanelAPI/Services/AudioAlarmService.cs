@@ -6,10 +6,11 @@ using ReolinkAPI.Utils;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
-public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db)
+public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IAudioAlarmService
 {
     public async Task<bool> UpdateAudioAlarm(AlarmSettingsDto channel)
     {
