@@ -15,6 +15,7 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
         
         return channels.Select(c => new ChannelDto
         {
+            ChannelId = c.AlarmChannelId,
             ChannelName = c.Name!,
             ChannelKey = c.Identifier,
             ChannelEnabled = c.Online,

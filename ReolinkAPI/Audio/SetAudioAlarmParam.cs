@@ -5,12 +5,11 @@ namespace ReolinkAPI.Audio;
 
 public class SetAudioAlarmParam
 {
-    [JsonPropertyName("enable")]
-    public bool? Enable { get; set; }
-
-    [JsonPropertyName("stopAlarm")]
-    public bool? StopAlarm { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("channel")]
+    public int? Channel { get; set; }
     
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("Audio")]
     public AudioAlarm? Audio { get; set; }
 }

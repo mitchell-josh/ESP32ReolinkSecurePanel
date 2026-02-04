@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
 using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
@@ -28,8 +29,8 @@ public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext
             {
                 Audio = new AudioAlarm
                 {
-                    StopAlarm = 0,
                     Enable = scheme.Enabled ? 1 : 0,
+                    StopAlarm = 0,
                     Schedule = new AiSchedule
                     {
                         Channel = scheme.AlarmChannel!.Identifier,
@@ -54,5 +55,5 @@ public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext
         => db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
-            .Single(c => c.Identifier == channelId);
+            .Single(c => c.AlarmChannelId == channelId);
 }

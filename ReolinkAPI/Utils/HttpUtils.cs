@@ -17,6 +17,6 @@ public static class HttpUtils
 
     public static List<TEntity> CreatePayloadArray<TEntity>(this TEntity entity) where TEntity: class => [entity];
 
-    public static string GetSchedule(bool enabled) 
-        => string.Join("", new List<int>(168).Select(i => i = enabled ? 1 : 0).ToList());
+    public static string GetSchedule(bool enabled)
+        => string.Join(string.Empty, Enumerable.Repeat(enabled ? 1 : 0, 168));
 }

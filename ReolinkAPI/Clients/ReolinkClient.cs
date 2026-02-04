@@ -34,7 +34,7 @@ public class ReolinkClient(HttpClient client)
 
     public async Task<bool> SetBuzzerAlarm(SetBuzzerAlarmRequest request)
     {
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetBuzzerAlarmV20", request);
+        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetBuzzerAlarmV20", request.CreatePayloadArray());
 
         return true;
     }
@@ -52,7 +52,7 @@ public class ReolinkClient(HttpClient client)
 
     public async Task<bool> SetAudioAlarm(SetAudioAlarmRequest request)
     {
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetAudioAlarmV20", request);
+        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetAudioAlarmV20", request.CreatePayloadArray());
 
         return true;
     }

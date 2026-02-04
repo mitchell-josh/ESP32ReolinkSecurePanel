@@ -3,12 +3,9 @@ using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.Audio;
 
-public class SetAudioAlarmRequest() : BaseRequest()
+public class SetAudioAlarmRequest() : BaseRequest("SetAudioAlarmV20")
 {
-    public override string? Command { get; set; } = "SetAudioAlarmV20";
-
-    public override int? Code { get; set; } = 0;
-
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("param")]
     public SetAudioAlarmParam? Param { get; set; }
 }

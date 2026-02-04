@@ -5,6 +5,7 @@ namespace ReolinkAPI.BuzzerAlarm;
 
 public class GetBuzzerAlarmRequest() : BaseRequest("GetBuzzerAlarmV20", 0)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("param")]
     public BuzzerAlarmParam Param { get; set; } = new();
 

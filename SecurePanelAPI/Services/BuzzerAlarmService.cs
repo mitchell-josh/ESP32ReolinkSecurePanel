@@ -26,6 +26,7 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
             {
                 Buzzer = new BuzzerAlarm
                 {
+                    Enable = scheme.Enabled ? 1 : 0,
                     ScheduleEnabled = scheme.Enabled ? 1 : 0,
                     Schedule = new AiSchedule
                     {
@@ -51,5 +52,5 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
         => db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
-            .Single(c => c.Identifier == channelId);
+            .Single(c => c.AlarmChannelId == channelId);
 }

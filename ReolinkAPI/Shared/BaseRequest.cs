@@ -10,9 +10,11 @@ public abstract class BaseRequest()
         this.Code = code;
     }
     
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("cmd")] 
     public virtual string? Command { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("code")] 
     public virtual int? Code { get; set; }
 }

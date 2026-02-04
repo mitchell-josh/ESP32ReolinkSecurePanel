@@ -27,7 +27,7 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
 
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> SaveAlarmSchedule([FromBody] AlarmSchemeDto scheme)
+    public async Task<IActionResult> SaveAlarmScheme([FromBody] AlarmSchemeDto scheme)
     {
         try
         {

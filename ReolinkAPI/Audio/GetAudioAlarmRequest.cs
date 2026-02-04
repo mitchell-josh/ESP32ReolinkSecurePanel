@@ -5,6 +5,7 @@ namespace ReolinkAPI.Audio;
 
 public class GetAudioAlarmRequest() : BaseRequest("GetAudioAlarmV20", 0)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("param")] 
     public GetAudioAlarmParam Param => new();
     

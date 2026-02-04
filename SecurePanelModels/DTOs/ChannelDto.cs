@@ -4,6 +4,9 @@ namespace SecurePanelModels.DTOs;
 
 public class ChannelDto
 {
+    [JsonPropertyName("channelId")]
+    public required int ChannelId { get; set; }
+    
     [JsonPropertyName("channelName")]
     public required string ChannelName { get; set; }
     
