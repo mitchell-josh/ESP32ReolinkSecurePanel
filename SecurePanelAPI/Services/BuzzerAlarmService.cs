@@ -50,6 +50,6 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
     private AlarmChannel GetChannel(int channelId)
         => db.AlarmChannels
             .Include(c => c.AlarmSchemes)
-            .Include(c => c.AlarmSchemes.Select(s => s.AlarmSchedule))
+            .ThenInclude(s => s.AlarmSchedule)
             .Single(c => c.Identifier == channelId);
 }

@@ -90,6 +90,6 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
     private async Task<AlarmChannel> GetChannel(int channelId)
         => await db.AlarmChannels
             .Include(c => c.AlarmSchemes)
-            .Include(c => c.AlarmSchemes.Select(s => s.AlarmSchedule))
+            .ThenInclude(s => s.AlarmSchedule)
             .SingleAsync(c => c.Identifier == channelId);
 }
