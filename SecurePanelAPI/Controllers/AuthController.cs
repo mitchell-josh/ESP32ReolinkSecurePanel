@@ -31,4 +31,24 @@ public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    public async Task<IActionResult> CheckAlarmCode([FromQuery] string alarmCode)
+    {
+        try
+        {
+            var username = this.User.Identity?.Name;
+
+            if (string.IsNullOrWhiteSpace(this.User.Identity?.Name))
+            {
+                return Unauthorized();
+            }
+
+            var result = await alarmCodeService.CheckAlarmCode(this.User.Identity.Name, alarmCode);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
 }
