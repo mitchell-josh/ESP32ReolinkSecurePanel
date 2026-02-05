@@ -1,0 +1,14 @@
+services:
+  api:
+    container_name: secure-panel-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: "host"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/SecurePanel.db
+      - Logging__LogLevel__ReolinkAPI=Debug
+      - Logging__LogLevel__SecurePanelAPI=Debug
+    volumes:
+      - ./data:/app/data

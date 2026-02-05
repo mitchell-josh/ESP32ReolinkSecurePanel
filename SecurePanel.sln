@@ -8,6 +8,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReolinkAPI", "ReolinkAPI\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurePanelDb", "SecurePanelDb\SecurePanelDb.csproj", "{985A54DE-D854-476B-AAB3-8FAEF3D26DB9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{0B266747-0DA1-4D8B-9303-220A15A01E1E}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+		docker-compose.yaml = docker-compose.yaml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

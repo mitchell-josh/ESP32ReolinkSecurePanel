@@ -6,6 +6,7 @@ using SecurePanelAPI.Utils;
 using SecurePanelDb;
 using SecurePanelModels.Utils;
 using Microsoft.EntityFrameworkCore;
+using ReolinkAPI.Handlers;
 using SecurePanelAPI.Handlers;
 using SecurePanelAPI.Models;
 using SecurePanelAPI.Services;
@@ -70,6 +71,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddTransient<ReolinkAuthClient>();
+builder.Services.AddTransient<ReolinkLoggingHandler>();
 
 // Add Reolink Auth token handler
 builder.Services.AddHttpClient<ReolinkAuthService>((provider, client) =>
@@ -78,7 +80,7 @@ builder.Services.AddHttpClient<ReolinkAuthService>((provider, client) =>
 }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 { // Skip SSL errors for locally hosted service
     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-});
+}).AddHttpMessageHandler<ReolinkLoggingHandler>();
 
 // Add reolink client
 builder.Services.AddHttpClient<ReolinkClient>((provider, client) =>
@@ -87,7 +89,7 @@ builder.Services.AddHttpClient<ReolinkClient>((provider, client) =>
 }).AddHttpMessageHandler<ReolinkAuthClient>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 { // Skip SSL errors for locally hosted service
     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-});
+}).AddHttpMessageHandler<ReolinkLoggingHandler>();
 
 // Add business logic services
 builder.Services.AddScoped<IAlarmSchemeService, AlarmSchemeService>();

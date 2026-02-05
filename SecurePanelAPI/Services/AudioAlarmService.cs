@@ -14,7 +14,9 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
-public class AudioAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IAudioAlarmService
+public class AudioAlarmService(
+    ReolinkClient reolinkClient, 
+    SecurePanelDbContext db) : IAudioAlarmService
 {
     public async Task<AlarmResult<bool>> UpdateAudioAlarm(AlarmSchemeQuery query)
     {

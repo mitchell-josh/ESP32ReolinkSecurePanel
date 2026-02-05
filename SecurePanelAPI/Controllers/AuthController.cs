@@ -11,7 +11,7 @@ namespace SecurePanelAPI.Controllers;
 public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpPost(nameof(ChangeAlarmCode))]
+    [HttpPost]
     public async Task<IActionResult> ChangeAlarmCode([FromQuery] string newAlarmCode)
     {
         try
