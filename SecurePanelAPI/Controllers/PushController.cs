@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecurePanelAPI.Utils;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
@@ -11,12 +12,12 @@ public class PushController(IPushService pushService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> UpdatePush([FromQuery] int channelId)
+    public async Task<IActionResult> UpdatePush([FromBody] AlarmSchemeQuery scheme)
     {
         try
         {
-            await pushService.UpdatePush(channelId);
-            return Ok();
+            var result = await pushService.UpdatePush(scheme);
+            return Ok(result);
         }
         catch (Exception ex)
         {

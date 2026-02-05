@@ -1,36 +1,51 @@
 using Microsoft.EntityFrameworkCore;
+using ReolinkAPI.Channels;
 using ReolinkAPI.Clients;
+using ReolinkAPI.Handlers;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
 public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IChannelService
 {
-    public async Task<List<ChannelDto>> GetChannels()
+    public async Task<AlarmResult<List<ChannelDto>>> GetChannels()
     {
-        var channels = await db.AlarmChannels.ToListAsync();
+        var channels = await db.AlarmChannels
+            .Select(c => new ChannelDto
+            {
+                ChannelId = c.AlarmChannelId,
+                ChannelName = c.Name!,
+                ChannelKey = c.Identifier,
+                ChannelEnabled = c.Online,
+            })
+            .ToListAsync();
         
-        return channels.Select(c => new ChannelDto
-        {
-            ChannelId = c.AlarmChannelId,
-            ChannelName = c.Name!,
-            ChannelKey = c.Identifier,
-            ChannelEnabled = c.Online,
-        }).ToList();
+        return AlarmResult<List<ChannelDto>>.Success(channels);
     }
 
-    public async Task CreateChannels()
+    public async Task<AlarmResult<bool>> CreateChannels()
     {
-        var response = await reolinkClient.GetChannelStatus();
+        var result = await reolinkClient.GetChannelStatus();
+        
+        var response = ReolinkHandler.ProcessResponse(result);
 
-        var reolinkStatuses = response?.Value?.Statuses
+        if (!response.Succeeded)
+        {
+            return AlarmResult<bool>.Failure(response.ErrorMessage!);
+        }
+        
+        var reolinkStatuses = result?.Value?.Value?.Statuses
             ?.Where(s => s.Channel.HasValue)
             ?.ToList() ?? [];
 
-        if (!reolinkStatuses.Any()) return;
+        if (!reolinkStatuses.Any())
+        {
+            return AlarmResult<bool>.Success(true);
+        }
 
         var existingKeys = await db.AlarmChannels
             .Select(c => c.Identifier)
@@ -51,15 +66,23 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
             db.AlarmChannels.AddRange(newEntities);
             await db.SaveChangesAsync();
         }
+        
+        return AlarmResult<bool>.Success(true);
     }
 
-    public async Task UpdateChannels()
+    public async Task<AlarmResult<bool>> UpdateChannels()
     {
-        var response = await reolinkClient.GetChannelStatus();
-        var reolinkStatuses = response?.Value?.Statuses;
+        var result = await reolinkClient.GetChannelStatus();
         
-        if (reolinkStatuses == null) return;
+        var response = ReolinkHandler.ProcessResponse(result);
 
+        if (!response.Succeeded)
+        {
+            return AlarmResult<bool>.Failure(response.ErrorMessage!);
+        }
+
+        var reolinkStatuses = result?.Value?.Value?.Statuses ?? [];
+        
         // Fetch db channels. No need for .ToList() yet, we can iterate the tracked entities
         var dbChannels = await db.AlarmChannels.ToListAsync();
 
@@ -85,5 +108,7 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
         {
             await db.SaveChangesAsync();
         }
+        
+        return AlarmResult<bool>.Success(true);
     }
 }

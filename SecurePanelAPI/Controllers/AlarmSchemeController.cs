@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecurePanelAPI.Utils;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
@@ -12,7 +13,7 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpGet]
-    public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeDto scheme)
+    public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeQuery scheme)
     {
         try
         {
@@ -31,8 +32,8 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
     {
         try
         {
-            await alarmSchemeService.SaveAlarmScheme(scheme);
-            return Ok();
+            var result = await alarmSchemeService.SaveAlarmScheme(scheme);
+            return Ok(result);
         }
         catch (Exception ex)
         {

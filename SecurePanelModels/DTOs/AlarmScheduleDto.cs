@@ -15,4 +15,10 @@ public class AlarmScheduleDto
     
     [JsonPropertyName("otherEnabled")]
     public bool? OtherEnabled { get; set; }
+
+    public bool Validate() =>
+        this.PeopleEnabled.HasValue 
+        && this.VehicleEnabled.HasValue 
+        && this.PetsEnabled.HasValue 
+        && this.OtherEnabled.HasValue;
 }

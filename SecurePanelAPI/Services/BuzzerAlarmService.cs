@@ -1,21 +1,34 @@
 using Microsoft.EntityFrameworkCore;
+using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Clients;
+using ReolinkAPI.Handlers;
 using ReolinkAPI.Shared;
 using ReolinkAPI.Utils;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
 public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IBuzzerAlarmService
 {
-    public async Task<bool> UpdateBuzzerAlarm(int channelId)
+    public async Task<AlarmResult<bool>> UpdateBuzzerAlarm(AlarmSchemeQuery query)
     {
-        var scheme = this.GetScheme(channelId);
-        return await reolinkClient.SetBuzzerAlarm(GenerateSetBuzzerRequest(scheme));
+        // Get local scheme data
+        var scheme = this.GetScheme(query);
+        if (scheme == null)
+        {
+            return AlarmResult<bool>.Failure("Scheme not found.");
+        }
+        
+        var raw = await reolinkClient.SetBuzzerAlarm(GenerateSetBuzzerRequest(scheme));
+        
+        var result = ReolinkHandler.ProcessResponse<BuzzerAlarmResponse>(raw);
+
+        return !result.Succeeded ? AlarmResult<bool>.Failure(result.ErrorMessage!) : AlarmResult<bool>.Success(true);
     }
 
     private SetBuzzerAlarmRequest GenerateSetBuzzerRequest(AlarmScheme scheme)
@@ -44,13 +57,15 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
         };
     }
 
-    private AlarmScheme GetScheme(int channelId)
-        => this.GetChannel(channelId)
-            .AlarmSchemes.OrderByDescending(s => s.DateCreated).First();
+    private AlarmScheme? GetScheme(AlarmSchemeQuery query)
+        => this.GetChannel(query.ChannelId)
+            ?.AlarmSchemes
+            ?.Where(s => s.AlarmSchemeTypeId == query.AlarmSchemeTypeId)
+            ?.OrderByDescending(s => s.DateCreated).FirstOrDefault();
     
-    private AlarmChannel GetChannel(int channelId)
+    private AlarmChannel? GetChannel(int? channelId)
         => db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
-            .Single(c => c.AlarmChannelId == channelId);
+            .SingleOrDefault(c => c.AlarmChannelId == channelId);
 }

@@ -1,4 +1,5 @@
 using SecurePanelDb.Models;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelAPI.Models;
 
@@ -8,5 +9,5 @@ public interface IAlarmCodeService
 
     bool CheckAlarmCode(AlarmUser alarmUser, string hashedCode, string providedCode);
     
-    bool ChangeAlarmCode(string username, string newAlarmCode);
+    Task<AlarmResult<bool>> ChangeAlarmCode(string username, string newAlarmCode);
 }

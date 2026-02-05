@@ -1,8 +1,9 @@
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelModels.Services;
 
 public interface IBuzzerAlarmService
 {
-    Task<bool> UpdateBuzzerAlarm(int channelId);
+    Task<AlarmResult<bool>> UpdateBuzzerAlarm(AlarmSchemeQuery query);
 }

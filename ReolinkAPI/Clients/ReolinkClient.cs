@@ -4,6 +4,7 @@ using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
 using ReolinkAPI.Channels;
 using ReolinkAPI.Push;
+using ReolinkAPI.Shared;
 using ReolinkAPI.Utils;
 using SecurePanelModels.Utils;
 
@@ -11,57 +12,35 @@ namespace ReolinkAPI.Clients;
 
 public class ReolinkClient(HttpClient client)
 {
-    public async Task<ChannelResponse?> GetChannelStatus()
+    public async Task<ReolinkResult<ChannelResponse>> GetChannelStatus()
+        => await this.PostAsync<ChannelResponse>("api.cgi?cmd=GetChannelStatus", new ChannelRequest());
+
+    public async Task<ReolinkResult<BuzzerAlarmResponse>> GetBuzzerAlarm(int channel)
+        => await this.PostAsync<BuzzerAlarmResponse>("api.cgi?cmd=GetBuzzerAlarmV20", GetBuzzerAlarmRequest.CreatePayload(channel));
+    
+    public async Task<ReolinkResult<BuzzerAlarmResponse>> SetBuzzerAlarm(SetBuzzerAlarmRequest request)
+        => await this.PostAsync<BuzzerAlarmResponse>("api.cgi?cmd=SetBuzzerAlarmV20", request);
+    
+    public async Task<ReolinkResult<AudioAlarmResponse>> GetAudioAlarm(int channel) 
+        => await this.PostAsync<AudioAlarmResponse>("api.cgi?cmd=GetAudioAlarmV20", GetAudioAlarmRequest.CreatePayload(channel));
+
+    public async Task<ReolinkResult<AudioAlarmResponse>> SetAudioAlarm(SetAudioAlarmRequest request)
+        => await this.PostAsync<AudioAlarmResponse>("api.cgi?cmd=SetAudioAlarmV20", request);
+
+    public async Task<ReolinkResult<PushResponse>> SetPush(SetPushRequest request) 
+        => await this.PostAsync<PushResponse>("api.cgi?cmd=SetPushV20", request);
+
+    private async Task<ReolinkResult<T>> PostAsync<T>(string requestUri, object payload)
     {
-        var requestPayload = new ChannelRequest().CreatePayloadArray();
+        var body = payload.CreatePayloadArray();
         
-        var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=GetChannelStatus", requestPayload);
+        var response = await client.PostAsJsonAsyncSafe(requestUri, body);
+        response.EnsureSuccessStatusCode();
         
         var rawJson = await response.Content.ReadAsStringAsync();
 
-        return JsonSerializer.Deserialize<List<ChannelResponse>>(rawJson)?.FirstOrDefault();
-    }
-
-    public async Task<BuzzerAlarmResponse?> GetBuzzerAlarm(int channel)
-    {
-        var requestPayload = GetBuzzerAlarmRequest.CreatePayload(channel).CreatePayloadArray();
-
-        var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=GetBuzzerAlarmV20", requestPayload);
-
-        var rawJson = await response.Content.ReadAsStringAsync();
+        var result = JsonSerializer.Deserialize<List<ReolinkResult<T>>>(rawJson);
         
-        return JsonSerializer.Deserialize<List<BuzzerAlarmResponse>>(rawJson)?.FirstOrDefault();
-    }
-
-    public async Task<bool> SetBuzzerAlarm(SetBuzzerAlarmRequest request)
-    {
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetBuzzerAlarmV20", request.CreatePayloadArray());
-
-        return true;
-    }
-
-    public async Task<Audio.AudioAlarmResponse?> GetAudioAlarm(int channel)
-    {
-        var requestPayload = GetAudioAlarmRequest.CreatePayload(channel).CreatePayloadArray();
-        
-        var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=GetAudioAlarmV20", requestPayload);
-
-        var rawJson = await response.Content.ReadAsStringAsync();
-        
-        return JsonSerializer.Deserialize<List<Audio.AudioAlarmResponse>>(rawJson)?.FirstOrDefault();
-    }
-
-    public async Task<bool> SetAudioAlarm(SetAudioAlarmRequest request)
-    {
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetAudioAlarmV20", request.CreatePayloadArray());
-
-        return true;
-    }
-
-    public async Task<bool> SetPush(SetPushRequest request)
-    {
-        var response = await client.PostAsJsonAsync("api.cgi?cmd=SetPushV20", request.CreatePayloadArray());
-
-        return true;
+        return result!.First();
     }
 }

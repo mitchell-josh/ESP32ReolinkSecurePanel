@@ -51,7 +51,13 @@ public class AlarmChannelSeeder
     
     private static async Task<List<ChannelStatuses>> GetChannels(ReolinkClient reolinkClient)
     {
-        var reolinkChannels = await reolinkClient?.GetChannelStatus()!;
-        return reolinkChannels?.Value?.Statuses?.Where(s => s.Channel.HasValue).ToList() ?? [];
+        var result = await reolinkClient.GetChannelStatus();
+
+        if (result.Code != 0)
+        { // Failed to grab channels - seed empty array.
+            return [];
+        }
+
+        return result.Value?.Value?.Statuses?.Where(s => s.Channel.HasValue)?.ToList() ?? [];
     }
 }

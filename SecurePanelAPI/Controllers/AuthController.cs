@@ -12,7 +12,7 @@ public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost(nameof(ChangeAlarmCode))]
-    public IActionResult ChangeAlarmCode([FromQuery] string newAlarmCode)
+    public async Task<IActionResult> ChangeAlarmCode([FromQuery] string newAlarmCode)
     {
         try
         {
@@ -23,8 +23,8 @@ public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
                 return Unauthorized();
             }
             
-            alarmCodeService.ChangeAlarmCode(this.User.Identity.Name, newAlarmCode);
-            return Ok();
+            var result = await alarmCodeService.ChangeAlarmCode(this.User.Identity.Name, newAlarmCode);
+            return Ok(result);
         }
         catch (Exception ex)
         {

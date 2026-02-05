@@ -11,36 +11,51 @@ namespace SecurePanelAPI.Services;
 
 public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
 {
-    public async Task<AlarmSchemeDto> GetAlarmScheme(AlarmSchemeDto schemeDto)
-        => this.GetAlarmSchemeDto((await this.GetScheme(schemeDto)) ?? this.GetDefaultScheme(schemeDto));
-
-    public async Task SaveAlarmScheme(AlarmSchemeDto scheme)
+    public async Task<AlarmResult<AlarmSchemeDto>> GetAlarmScheme(AlarmSchemeQuery query)
     {
-        db.AlarmSchemes.Add(new AlarmScheme
+        var scheme = await this.GetScheme(query);
+        if (scheme != null)
         {
-            AlarmChannelId = scheme.AlarmChannelId!.Value!,
-            AlarmSchemeTypeId = scheme.AlarmSchemeTypeId!.Value,
-            Enabled = scheme.Enabled ?? false,
-            PushEnabled = scheme.PushEnabled ?? false,
-            AlarmSchedule = new AlarmSchedule
-            {
-                PetsEnabled = scheme.Schedule?.PetsEnabled ?? false,
-                OtherEnabled = scheme.Schedule?.OtherEnabled ?? false,
-                PeopleEnabled = scheme.Schedule?.PeopleEnabled ?? false,
-                VehicleEnabled = scheme.Schedule?.VehicleEnabled ?? false,
-            },
-            DateCreated = DateTime.UtcNow,
-        });
-        await db.SaveChangesAsync();
+            return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(scheme));
+        }
+
+        return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(this.GetDefaultScheme(query)));
     }
 
-    public async Task<List<AlarmSchemeTypeDto>> GetAlarmSchemeTypes()
+    public async Task<AlarmResult<bool>> SaveAlarmScheme(AlarmSchemeDto scheme)
     {
-        return await db.AlarmSchemeTypes.Select(t => new AlarmSchemeTypeDto
+        if (scheme.Validate())
+        {
+            db.AlarmSchemes.Add(new AlarmScheme
+            {
+                AlarmChannelId = scheme.AlarmChannelId!.Value!,
+                AlarmSchemeTypeId = scheme.AlarmSchemeTypeId!.Value,
+                Enabled = scheme.Enabled ?? false,
+                PushEnabled = scheme.PushEnabled ?? false,
+                AlarmSchedule = new AlarmSchedule
+                {
+                    PetsEnabled = scheme.Schedule?.PetsEnabled ?? false,
+                    OtherEnabled = scheme.Schedule?.OtherEnabled ?? false,
+                    PeopleEnabled = scheme.Schedule?.PeopleEnabled ?? false,
+                    VehicleEnabled = scheme.Schedule?.VehicleEnabled ?? false,
+                },
+                DateCreated = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+            return AlarmResult<bool>.Success(true);
+        }
+        return AlarmResult<bool>.Failure("Invalid alarm scheme");
+    }
+
+    public async Task<AlarmResult<List<AlarmSchemeTypeDto>>> GetAlarmSchemeTypes()
+    {
+        var alarmSchemeTypes = await db.AlarmSchemeTypes.Select(t => new AlarmSchemeTypeDto
         {
             AlarmSchemeTypeId = t.AlarmSchemeTypeId,
             Key = t.Key,
         }).ToListAsync();
+
+        return AlarmResult<List<AlarmSchemeTypeDto>>.Success(alarmSchemeTypes);
     }
 
     private AlarmSchemeDto GetAlarmSchemeDto(AlarmScheme scheme)
@@ -62,11 +77,11 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
         };
     }
 
-    private AlarmScheme GetDefaultScheme(AlarmSchemeDto scheme)
+    private AlarmScheme GetDefaultScheme(AlarmSchemeQuery query)
         => new()
         {
-            AlarmChannelId = scheme.AlarmChannelId!.Value,
-            AlarmSchemeTypeId = scheme.AlarmSchemeTypeId!.Value,
+            AlarmChannelId = query.ChannelId!.Value,
+            AlarmSchemeTypeId = query.AlarmSchemeTypeId!.Value,
             AlarmSchedule = this.GetDefaultSchedule(),
             DateCreated = DateTime.UtcNow,
             AlarmScheduleId = 0,
@@ -83,16 +98,16 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
             VehicleEnabled = false,
         };
     
-    private async Task<AlarmScheme?> GetScheme(AlarmSchemeDto scheme)
-        => (await this.GetChannel(scheme.AlarmChannelId!.Value))
-            .AlarmSchemes
-            .Where(s => s.AlarmSchemeTypeId == scheme.AlarmSchemeTypeId)
-            .OrderByDescending(s => s.DateCreated)
-            .FirstOrDefault();
+    private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
+        => (await this.GetChannel(query.ChannelId!.Value))
+            ?.AlarmSchemes
+            ?.Where(s => s.AlarmSchemeTypeId == query.AlarmSchemeTypeId)
+            ?.OrderByDescending(s => s.DateCreated)
+            ?.FirstOrDefault();
     
-    private async Task<AlarmChannel> GetChannel(int channelId)
+    private async Task<AlarmChannel?> GetChannel(int channelId)
         => await db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
-            .SingleAsync(c => c.AlarmChannelId == channelId);
+            .SingleOrDefaultAsync(c => c.AlarmChannelId == channelId);
 }

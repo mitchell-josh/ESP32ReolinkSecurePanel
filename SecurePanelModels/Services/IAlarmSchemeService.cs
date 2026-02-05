@@ -1,12 +1,13 @@
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelModels.Services;
 
 public interface IAlarmSchemeService
 {
-    Task<AlarmSchemeDto> GetAlarmScheme(AlarmSchemeDto schemeDto);
-
-    Task SaveAlarmScheme(AlarmSchemeDto scheme);
+    Task<AlarmResult<AlarmSchemeDto>> GetAlarmScheme(AlarmSchemeQuery query);
     
-    Task<List<AlarmSchemeTypeDto>> GetAlarmSchemeTypes();
+    Task<AlarmResult<bool>> SaveAlarmScheme(AlarmSchemeDto scheme);
+    
+    Task<AlarmResult<List<AlarmSchemeTypeDto>>> GetAlarmSchemeTypes();
 }

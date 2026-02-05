@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReolinkAPI.Clients;
 using SecurePanelAPI.Utils;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
@@ -13,12 +14,12 @@ public class AudioAlarmController(IAudioAlarmService audioAlarmService) : Contro
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> UpdateAudioAlarm([FromQuery] int channelId)
+    public async Task<IActionResult> UpdateAudioAlarm([FromBody] AlarmSchemeQuery scheme)
     {
         try
         {
-            await audioAlarmService.UpdateAudioAlarm(channelId);
-            return Ok();
+            var result = await audioAlarmService.UpdateAudioAlarm(scheme);
+            return Ok(result);
         }
         catch (Exception ex)
         {

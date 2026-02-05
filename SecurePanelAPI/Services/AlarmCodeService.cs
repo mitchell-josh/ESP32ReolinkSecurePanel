@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SecurePanelAPI.Models;
 using SecurePanelDb;
 using SecurePanelDb.Models;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelAPI.Services;
 
@@ -18,20 +20,20 @@ public class AlarmCodeService(SecurePanelDbContext db) : IAlarmCodeService
         return result == PasswordVerificationResult.Success;
     }
 
-    public bool ChangeAlarmCode(string username, string newAlarmCode)
+    public async Task<AlarmResult<bool>> ChangeAlarmCode(string username, string newAlarmCode)
     {
-        var alarmUser = db.AlarmUsers.SingleOrDefault(u => u.Username == username);
+        var alarmUser = await db.AlarmUsers.SingleOrDefaultAsync(u => u.Username == username);
 
         if (alarmUser == null)
         {
-            return false;
+            return AlarmResult<bool>.Failure("User not found");
         }
         else
         {
             var newHashedAlarmCode = this.passwordHasher.HashPassword(alarmUser, newAlarmCode);
             alarmUser.AlarmCodeHash = newHashedAlarmCode;
-            db.SaveChanges();
-            return true;
+            await db.SaveChangesAsync();
+            return AlarmResult<bool>.Success(true);
         }
     }
 }

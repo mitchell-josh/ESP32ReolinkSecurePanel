@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ReolinkAPI.Clients;
 using SecurePanelAPI.Utils;
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
@@ -13,12 +14,12 @@ public class BuzzerAlarmController(IBuzzerAlarmService buzzerAlarmService) : Con
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> UpdateBuzzerAlarm([FromQuery] int channelId)
+    public async Task<IActionResult> UpdateBuzzerAlarm([FromBody] AlarmSchemeQuery scheme)
     {
         try
         {
-            await buzzerAlarmService.UpdateBuzzerAlarm(channelId);
-            return Ok();
+            var result = await buzzerAlarmService.UpdateBuzzerAlarm(scheme);
+            return Ok(result);
         }
         catch (Exception ex)
         {

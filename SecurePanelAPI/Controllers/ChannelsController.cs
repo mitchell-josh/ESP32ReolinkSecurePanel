@@ -31,8 +31,8 @@ public class ChannelsController(IChannelService channelService) : ControllerBase
     {
         try
         {
-            await channelService.CreateChannels();
-            return Ok();
+            var result = await channelService.CreateChannels();
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -46,8 +46,8 @@ public class ChannelsController(IChannelService channelService) : ControllerBase
     {
         try
         {
-            await channelService.UpdateChannels();
-            return Ok();
+            var result = await channelService.UpdateChannels();
+            return Ok(result);
         }
         catch (Exception ex)
         {

@@ -1,12 +1,13 @@
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelModels.Services;
 
 public interface IChannelService
 {
-    Task<List<ChannelDto>> GetChannels();
+    Task<AlarmResult<List<ChannelDto>>> GetChannels();
 
-    Task CreateChannels();
+    Task<AlarmResult<bool>> CreateChannels();
 
-    Task UpdateChannels();
+    Task<AlarmResult<bool>> UpdateChannels();
 }

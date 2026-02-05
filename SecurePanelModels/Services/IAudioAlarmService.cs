@@ -1,8 +1,9 @@
 using SecurePanelModels.DTOs;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelModels.Services;
 
 public interface IAudioAlarmService
 {
-    Task<bool> UpdateAudioAlarm(int channelId);
+    Task<AlarmResult<bool>> UpdateAudioAlarm(AlarmSchemeQuery query);
 }

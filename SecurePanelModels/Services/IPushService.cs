@@ -1,6 +1,8 @@
+using SecurePanelModels.Queries;
+
 namespace SecurePanelModels.Services;
 
 public interface IPushService
 {
-    Task<bool> UpdatePush(int channelId);
+    Task<AlarmResult<bool>> UpdatePush(AlarmSchemeQuery query);
 }
