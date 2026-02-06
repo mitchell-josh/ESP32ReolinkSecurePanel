@@ -10,6 +10,7 @@ lv_obj_t * uic_BtnKeyPadC;
 lv_obj_t * uic_BtnKeyPadB;
 lv_obj_t * ui_PinEntry = NULL;
 lv_obj_t * ui_PnlInfo = NULL;
+lv_obj_t * ui_LblKeyPadPrompt = NULL;
 lv_obj_t * ui_BtnKeyPad0 = NULL;
 lv_obj_t * ui_LblKeyPad0 = NULL;
 lv_obj_t * ui_BtnKeyPad1 = NULL;
@@ -60,6 +61,11 @@ void ui_PinEntry_screen_init(void)
     lv_obj_set_y(ui_PnlInfo, -102);
     lv_obj_set_align(ui_PnlInfo, LV_ALIGN_CENTER);
     lv_obj_clear_flag(ui_PnlInfo, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_LblKeyPadPrompt = lv_label_create(ui_PnlInfo);
+    lv_obj_set_width(ui_LblKeyPadPrompt, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LblKeyPadPrompt, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_LblKeyPadPrompt, LV_ALIGN_CENTER);
 
     ui_BtnKeyPad0 = lv_btn_create(ui_PinEntry);
     lv_obj_set_width(ui_BtnKeyPad0, 75);
@@ -380,6 +386,7 @@ void ui_PinEntry_screen_destroy(void)
     // NULL screen variables
     ui_PinEntry = NULL;
     ui_PnlInfo = NULL;
+    ui_LblKeyPadPrompt = NULL;
     ui_BtnKeyPad0 = NULL;
     ui_LblKeyPad0 = NULL;
     ui_BtnKeyPad1 = NULL;

@@ -15,6 +15,7 @@ extern void ui_PinEntry_screen_init(void);
 extern void ui_PinEntry_screen_destroy(void);
 extern lv_obj_t * ui_PinEntry;
 extern lv_obj_t * ui_PnlInfo;
+extern lv_obj_t * ui_LblKeyPadPrompt;
 extern lv_obj_t * ui_BtnKeyPad0;
 extern lv_obj_t * ui_LblKeyPad0;
 extern lv_obj_t * ui_BtnKeyPad1;
