@@ -32,6 +32,8 @@ public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
         }
     }
 
+    [Authorize(Policy = Consts.AlarmCodePolicy)]
+    [HttpPost]
     public async Task<IActionResult> CheckAlarmCode([FromQuery] string alarmCode)
     {
         try
