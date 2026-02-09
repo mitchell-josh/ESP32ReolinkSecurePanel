@@ -1,4 +1,5 @@
 #include "pin_controller.h"
+#include "api/auth_handler.h"
 #include "api/secure_panel_api.h"
 #include "ui/ui.h"
 
@@ -19,25 +20,14 @@ void submit_pin() {
         return;
     }
 
-    RequestModel req;
+    AuthCredentials credentials;
+    credentials.alarmCode = pinBuffer.c_str();
 
-    // 1. The Base Endpoint (without the ? parameters)
-    // We use the macro from your platformio.ini
-    req.endpoint = String(SECURE_PANEL_API_URI) + "auth/CheckAlarmCode";
+    authorise(credentials);
 
-    // 2. Set Query Parameters (?alarmCode=0000)
-    req.query["alarmCode"] = pinBuffer.c_str();
-
-    // 3. Set Custom Headers
-    req.headers["X-Alarm-User"] = "Admin";
-    req.headers["X-Alarm-Code"] = pinBuffer.c_str();
-
-    // 4. Send the Request
-    String response = post_data(req);
-
-    // 5. Log result
-    Serial.println("Response from Server:");
-    Serial.println(response);
+    if (is_authorised()) {
+        Serial.println("Authorised user.");
+    }
 }
 
 static void pin_btn_event_handler(lv_event_t * e) {

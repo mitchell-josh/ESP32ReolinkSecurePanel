@@ -13,6 +13,12 @@ struct RequestModel {
     int timeout = 5000;
 };
 
+struct BooleanResult {
+    bool succeeded = false;
+    bool value = false;
+    const char* errorMessage = "";
+};
+
 String get_data(RequestModel& req);
 
 String post_data(RequestModel& req);
