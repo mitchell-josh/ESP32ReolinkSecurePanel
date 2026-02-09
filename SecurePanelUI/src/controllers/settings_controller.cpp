@@ -2,7 +2,7 @@
 #include "ui/ui.h"
 #include "api/auth_handler.h"
 #include "pin_controller.h"
-#include "camera_select.h"
+#include "camera_select_controller.h"
 
 #include <Arduino.h>
 

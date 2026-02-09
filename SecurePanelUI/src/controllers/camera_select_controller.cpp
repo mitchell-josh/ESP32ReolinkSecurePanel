@@ -1,14 +1,8 @@
 #include "camera_select_controller.h"
+#include "camera_settings_controller.h"
 #include "api/auth_handler.h"
 #include "api/secure_panel_api.h"
 #include "ui/ui.h"
-
-struct Channel {
-    int channelId = -1;
-    String channelName = "";
-    int channelKey = -1;
-    bool channelEnabled = false;
-};
 
 static AlarmScheme currentScheme = AlarmScheme::DISARMED;
 
@@ -16,6 +10,7 @@ static AlarmScheme currentScheme = AlarmScheme::DISARMED;
 Channel channels[8] = {};
 
 lv_obj_t* cameraLabels[8];
+lv_obj_t* cameraButtons[8];
 
 BooleanResult get_result(const char* jsonString);
 
@@ -114,10 +109,15 @@ static void camera_btn_event_handler(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * target = lv_event_get_target(e); // The button object pointer
 
+    Serial.println("Pressed...");
+
     if(code == LV_EVENT_CLICKED) {
         for (int i = 0; i < 8; i++) {
-            if (target == cameraLabels[i]) {
-                Serial.println("Camera selected");
+            if (target == cameraButtons[i]) {
+                Channel channel = channels[i];
+                if (channel.channelEnabled) {
+                    open_camera_settings_screen(channel, currentScheme);
+                }
             }
         }
     }
@@ -137,7 +137,7 @@ void update_camera_select_ui() {
         if (cameraLabels[i] == nullptr) continue;
         Channel channel = channels[i];
         const char* name = channels[i].channelName.c_str();
-        if (strlen(name) > 0) {
+        if (channel.channelEnabled) {
             lv_label_set_text(cameraLabels[i], name);
         }
         else {
@@ -148,6 +148,18 @@ void update_camera_select_ui() {
 }
 
 void init_camera_select_controller() {
+    cameraButtons[0] = ui_BtnCamera0;
+    cameraButtons[1] = ui_BtnCamera1;
+    cameraButtons[2] = ui_BtnCamera2;
+    cameraButtons[3] = ui_BtnCamera3;
+    cameraButtons[4] = ui_BtnCamera4;
+    cameraButtons[5] = ui_BtnCamera5;
+    cameraButtons[6] = ui_BtnCamera6;
+    cameraButtons[7] = ui_BtnCamera7;
+
+    for (int i = 0; i < 8; i++) {
+        lv_obj_add_event_cb(cameraButtons[i], camera_btn_event_handler, LV_EVENT_CLICKED, NULL);
+    }
 }
 
 void open_camera_select_screen(AlarmScheme alarmScheme) {

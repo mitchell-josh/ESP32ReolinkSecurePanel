@@ -3,6 +3,13 @@
 
 #include <Arduino.h>
 
+struct Channel {
+    int channelId = -1;
+    String channelName = "";
+    int channelKey = -1;
+    bool channelEnabled = false;
+};
+
 enum AlarmScheme {
     DISARMED,
     PARTIAL_ALARM,
