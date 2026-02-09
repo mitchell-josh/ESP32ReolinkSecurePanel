@@ -1,5 +1,5 @@
-#ifndef CAMERA_SELECT_H
-#define CAMERA_SELECT_H
+#ifndef CAMERA_SELECT_CONTROLLER_H
+#define CAMERA_SELECT_CONTROLLER_H
 
 #include <Arduino.h>
 
