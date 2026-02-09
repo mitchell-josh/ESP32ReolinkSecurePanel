@@ -5,6 +5,7 @@
 
 enum PinMode {
     MODE_UNLOCK,
+    MODE_UNLOCKED,
     MODE_CHANGE_PIN,
     MODE_CONFIRM_CHANGE_PIN
 };

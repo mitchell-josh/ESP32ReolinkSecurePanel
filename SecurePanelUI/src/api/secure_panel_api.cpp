@@ -2,6 +2,7 @@
 
 String get_data(RequestModel& req) {
     HTTPClient http;
+    http.setConnectTimeout(3000); // 3 seconds to find the server
     
     // Append query params to URL
     String fullUrl = String(req.endpoint.c_str());
@@ -17,12 +18,15 @@ String get_data(RequestModel& req) {
     Serial.println(fullUrl);
 
     http.begin(fullUrl);
+    http.setTimeout(5000); // Give it 5 seconds to respond
+    http.setReuse(false); // Disable connection reuse
     
     // Add Headers
     JsonObject headers = req.headers.as<JsonObject>();
     for (JsonPair p : headers) {
         http.addHeader(p.key().c_str(), p.value().as<const char*>());
     }
+    http.addHeader("Connection", "close"); // Tell .NET to drop the socket immediately
 
     int httpResponseCode = http.GET();
     String response = "{}";
@@ -37,6 +41,7 @@ String get_data(RequestModel& req) {
 
 String post_data(RequestModel& req) {
     HTTPClient http;
+    http.setConnectTimeout(3000); // 3 seconds to find the server
     
     // Append query params to URL
     String fullUrl = String(req.endpoint.c_str());
@@ -54,8 +59,14 @@ String post_data(RequestModel& req) {
     Serial.println("Sending request....");
     Serial.println(fullUrl);
 
+    delay(100); 
+    yield();
+
     // Initialize URL
     http.begin(fullUrl);
+    http.setTimeout(5000); // Give it 5 seconds to respond
+    http.setReuse(false); // Disable connection reuse
+    http.addHeader("Connection", "close"); // Tell .NET to drop the socket immediately
     
     // Add Headers from JsonDocument
     JsonObject headers = req.headers.as<JsonObject>();
@@ -85,11 +96,14 @@ String post_data(RequestModel& req) {
     if (httpResponseCode > 0) {
         response = http.getString();
         Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+        Serial.println(response);
     } else {
+        Serial.printf("Error: %s\n", http.errorToString(httpResponseCode).c_str());
         Serial.printf("Error code: %d\n", httpResponseCode);
     }
 
-    http.end();
+    http.end(); // CRITICAL: Move this as high as possible
+    delay(10);
     return response;
 }
 

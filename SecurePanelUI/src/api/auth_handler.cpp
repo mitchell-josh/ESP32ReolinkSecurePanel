@@ -39,6 +39,12 @@ void set_authorised(AuthCredentials credentials) {
     currentSession.credentials = credentials;
 }
 
+void clear_authorised() {
+    currentSession.isAuthenticated = false;
+    currentSession.authenticatedAt = 0;
+    currentSession.credentials.alarmCode = "";
+}
+
 bool is_authorised() {
     if (!currentSession.isAuthenticated) return false;
 

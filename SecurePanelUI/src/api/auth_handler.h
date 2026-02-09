@@ -1,9 +1,11 @@
 #ifndef AUTH_HANDLER_H
 #define AUTH_HANDLER_H
 
+#include <Arduino.h>
+
 struct AuthCredentials {
-    const char* alarmUser = "Admin";
-    const char* alarmCode;
+    String alarmUser = "Admin";
+    String alarmCode = "";
 };
 
 struct AuthSession {
@@ -16,6 +18,8 @@ struct AuthSession {
 void authorise(AuthCredentials credentials);
 
 void set_authorised(AuthCredentials credentials);
+
+void clear_authorised();
 
 bool is_authorised();
 
