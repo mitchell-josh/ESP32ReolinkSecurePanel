@@ -19,8 +19,16 @@ struct BooleanResult {
     const char* errorMessage = "";
 };
 
+struct DataResult {
+    bool succeeded = false;
+    JsonDocument value;
+    const char* errorMessage = "";
+};
+
 String get_data(RequestModel& req);
 
 String post_data(RequestModel& req);
+
+void api_ready_check();
 
 #endif // SECURE_PANEL_API_H

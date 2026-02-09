@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SecurePanelAPI.Models;
 using SecurePanelAPI.Services;
 using SecurePanelAPI.Utils;
+using SecurePanelModels.Queries;
 
 namespace SecurePanelAPI.Controllers;
 
@@ -10,6 +11,12 @@ namespace SecurePanelAPI.Controllers;
 [Route("api/[controller]/[action]")]
 public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
 {
+    [HttpGet]
+    public IActionResult Test()
+    {
+        return Ok(AlarmResult<bool>.Success(true));
+    }
+    
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
     public async Task<IActionResult> ChangeAlarmCode([FromQuery] string newAlarmCode)

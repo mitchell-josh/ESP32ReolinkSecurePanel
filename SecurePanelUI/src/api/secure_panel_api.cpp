@@ -9,13 +9,19 @@ String get_data(RequestModel& req) {
     if (!req.query.isNull()) {
         fullUrl += "?";
         JsonObject params = req.query.as<JsonObject>();
+        int count = 0;
         for (JsonPair p : params) {
             fullUrl += String(p.key().c_str()) + "=" + p.value().as<const char*>() + "&";
+            count++;
+            if (count != params.size()) fullUrl += "&";
         }
     }
 
     Serial.println("Sending request....");
     Serial.println(fullUrl);
+
+    delay(100); 
+    yield();
 
     http.begin(fullUrl);
     http.setTimeout(5000); // Give it 5 seconds to respond
@@ -36,6 +42,7 @@ String get_data(RequestModel& req) {
     }
 
     http.end();
+    delay(10);
     return response;
 }
 
@@ -107,3 +114,33 @@ String post_data(RequestModel& req) {
     return response;
 }
 
+void api_ready_check() {
+    bool isOnline = false;
+    int attempts = 0;
+
+    while (!isOnline) {
+        attempts++;
+
+        RequestModel req;
+        req.endpoint = String(SECURE_PANEL_API_URI) + "auth/test";
+
+        String response = get_data(req);
+
+        if (response != "{}" && response.length() > 0) {
+            isOnline = true;
+        } else {
+            delay(2000); 
+        }
+
+        if (isOnline) {
+            Serial.println("API is online - Proceeding...");
+            break;
+        }
+
+        // Safety break after 120 seconds (30 attempts * 2s)
+        if (attempts > 60) {
+            Serial.println("API WAKEUP TIMEOUT - Proceeding anyway...");
+            break;
+        }
+    }
+}

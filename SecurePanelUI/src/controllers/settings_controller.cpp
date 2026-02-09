@@ -2,6 +2,7 @@
 #include "ui/ui.h"
 #include "api/auth_handler.h"
 #include "pin_controller.h"
+#include "camera_select.h"
 
 #include <Arduino.h>
 
@@ -14,15 +15,21 @@ void set_cancel();
 bool settings_auth_check();
 
 void modify_full_alarm() {
-    return;
+    if (is_authorised()) {
+        open_camera_select_screen(AlarmScheme::FULL_ALARM);
+    }
 }
 
 void modify_partial_alarm() {
-    return;
+    if (is_authorised()) {
+        open_camera_select_screen(AlarmScheme::PARTIAL_ALARM);
+    }
 }
 
 void modify_disarmed_alarm() {
-    return;
+    if (is_authorised()) {
+        open_camera_select_screen(AlarmScheme::DISARMED);
+    }
 }
 
 void set_ok() {
