@@ -3,6 +3,6 @@
 
 void init_loading_screen();
 
-void open_loading_screen();
+void open_loading_screen(const char* loadingText);
 
 #endif // LOADING_CONTROLLER_H

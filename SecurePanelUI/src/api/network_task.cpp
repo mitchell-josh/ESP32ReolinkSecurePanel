@@ -1,0 +1,48 @@
+#include "network_task.h"
+#include "controllers/loading_controller.h"
+
+#include <Arduino.h>
+
+static LoadingState loadingState = LoadingState::IDLE;
+
+void network_task(void * pvParameters) {
+    NetworkTaskParams* params = (NetworkTaskParams*)pvParameters;
+
+    loadingState = LoadingState::LOADING;
+
+    uint32_t startTime = xTaskGetTickCount();
+    uint32_t timeoutTicks = pdMS_TO_TICKS(params->timeoutMs);
+
+    if (params->action != nullptr) {
+        params->action();
+    }
+
+    // After the function returns, check if it took too long
+    if ((xTaskGetTickCount() - startTime) > timeoutTicks) {
+        loadingState = LoadingState::STATE_TIMEOUT;
+    } else if (loadingState == LOADING) {
+        loadingState = SUCCESS;
+    }
+
+    delete params;
+
+    vTaskDelete(NULL);
+}
+
+void run_with_loading(WorkerFunc func, const char* message) {
+    NetworkTaskParams* params = new NetworkTaskParams();
+    params->action = func;
+    params->loadingText = message;
+
+    open_loading_screen(message);
+
+    xTaskCreatePinnedToCore(
+        network_task,
+        "network_task",
+        10000,
+        params,
+        1,
+        NULL,
+        0
+    );
+}
