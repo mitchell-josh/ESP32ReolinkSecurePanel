@@ -20,8 +20,6 @@ lv_obj_t * ui_BtnSettingsOkCS = NULL;
 lv_obj_t * ui_LblSettingsOk2 = NULL;
 lv_obj_t * ui_BtnSettingsCancelCS = NULL;
 lv_obj_t * ui_LblSettingsCancel2 = NULL;
-lv_obj_t * ui_BtnUseCurrentSettings = NULL;
-lv_obj_t * ui_LblUserCurrentSettings = NULL;
 lv_obj_t * ui_LblCameraName = NULL;
 // event funtions
 
@@ -169,26 +167,6 @@ void ui_CameraSettings_screen_init(void)
     lv_obj_set_style_text_opa(ui_LblSettingsCancel2, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_LblSettingsCancel2, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_BtnUseCurrentSettings = lv_btn_create(ui_CameraSettings);
-    lv_obj_set_width(ui_BtnUseCurrentSettings, 159);
-    lv_obj_set_height(ui_BtnUseCurrentSettings, 40);
-    lv_obj_set_x(ui_BtnUseCurrentSettings, 0);
-    lv_obj_set_y(ui_BtnUseCurrentSettings, 96);
-    lv_obj_set_align(ui_BtnUseCurrentSettings, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_BtnUseCurrentSettings, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-    lv_obj_clear_flag(ui_BtnUseCurrentSettings, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_BtnUseCurrentSettings, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_BtnUseCurrentSettings, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-
-    ui_LblUserCurrentSettings = lv_label_create(ui_BtnUseCurrentSettings);
-    lv_obj_set_width(ui_LblUserCurrentSettings, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_LblUserCurrentSettings, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_LblUserCurrentSettings, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LblUserCurrentSettings, "Use Current Settings");
-    lv_obj_set_style_text_color(ui_LblUserCurrentSettings, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_LblUserCurrentSettings, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(ui_LblUserCurrentSettings, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
-
     ui_LblCameraName = lv_label_create(ui_CameraSettings);
     lv_obj_set_width(ui_LblCameraName, 310);
     lv_obj_set_height(ui_LblCameraName, LV_SIZE_CONTENT);    /// 1
@@ -221,8 +199,6 @@ void ui_CameraSettings_screen_destroy(void)
     ui_LblSettingsOk2 = NULL;
     ui_BtnSettingsCancelCS = NULL;
     ui_LblSettingsCancel2 = NULL;
-    ui_BtnUseCurrentSettings = NULL;
-    ui_LblUserCurrentSettings = NULL;
     ui_LblCameraName = NULL;
 
 }

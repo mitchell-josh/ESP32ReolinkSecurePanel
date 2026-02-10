@@ -28,8 +28,6 @@ extern lv_obj_t * ui_BtnSettingsOkCS;
 extern lv_obj_t * ui_LblSettingsOk2;
 extern lv_obj_t * ui_BtnSettingsCancelCS;
 extern lv_obj_t * ui_LblSettingsCancel2;
-extern lv_obj_t * ui_BtnUseCurrentSettings;
-extern lv_obj_t * ui_LblUserCurrentSettings;
 extern lv_obj_t * ui_LblCameraName;
 // CUSTOM VARIABLES
 

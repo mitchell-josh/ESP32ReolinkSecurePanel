@@ -37,6 +37,8 @@ void ui_init(void)
     ui_SettingsLanding_screen_init();
     ui_CameraSelect_screen_init();
     ui_CameraSettings_screen_init();
+    ui_Error_screen_init();
+    ui_Loading_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_disp_load_scr(ui_PinEntry);
 }
@@ -47,4 +49,6 @@ void ui_destroy(void)
     ui_SettingsLanding_screen_destroy();
     ui_CameraSelect_screen_destroy();
     ui_CameraSettings_screen_destroy();
+    ui_Error_screen_destroy();
+    ui_Loading_screen_destroy();
 }

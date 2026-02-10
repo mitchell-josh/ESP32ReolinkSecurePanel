@@ -109,8 +109,6 @@ static void camera_btn_event_handler(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * target = lv_event_get_target(e); // The button object pointer
 
-    Serial.println("Pressed...");
-
     if(code == LV_EVENT_CLICKED) {
         for (int i = 0; i < 8; i++) {
             if (target == cameraButtons[i]) {

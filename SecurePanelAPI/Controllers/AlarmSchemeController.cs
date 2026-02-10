@@ -12,7 +12,7 @@ namespace SecurePanelAPI.Controllers;
 public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : ControllerBase
 {
     [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpGet]
+    [HttpPost]
     public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeQuery scheme)
     {
         try

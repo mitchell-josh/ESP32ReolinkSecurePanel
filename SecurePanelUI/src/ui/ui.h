@@ -15,23 +15,18 @@ extern "C" {
 #include "ui_helpers.h"
 #include "ui_events.h"
 
-
 ///////////////////// SCREENS ////////////////////
-
 #include "screens/ui_PinEntry.h"
 #include "screens/ui_SettingsLanding.h"
 #include "screens/ui_CameraSelect.h"
 #include "screens/ui_CameraSettings.h"
+#include "screens/ui_Error.h"
+#include "screens/ui_Loading.h"
 
 ///////////////////// VARIABLES ////////////////////
 
-
 // EVENTS
-
 extern lv_obj_t * ui____initial_actions0;
-
-// FONTS
-LV_FONT_DECLARE(ui_font_FontAwesome);
 
 // UI INIT
 void ui_init(void);
