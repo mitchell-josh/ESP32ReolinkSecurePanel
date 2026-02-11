@@ -9,14 +9,14 @@ enum DropdownValues {
 };
 
 static Channel currentChannel;
-static AlarmScheme currentAlarmScheme;
+static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
 static AlarmSchemeType alarmSchemeTypes[3] = {};
 
-AlarmScheme string_to_alarm_enum(const char* text) {
-    if (strcasecmp(text, "Disarmed") == 0) return AlarmScheme::DISARMED;
-    else if (strcasecmp(text, "FullAlarm") == 0) return AlarmScheme::FULL_ALARM;
-    else if (strcasecmp(text, "PartialAlarm") == 0) return AlarmScheme::PARTIAL_ALARM;
+AlarmSchemeEnum string_to_alarm_enum(const char* text) {
+    if (strcasecmp(text, "Disarmed") == 0) return AlarmSchemeEnum::DISARMED;
+    else if (strcasecmp(text, "FullAlarm") == 0) return AlarmSchemeEnum::FULL_ALARM;
+    else if (strcasecmp(text, "PartialAlarm") == 0) return AlarmSchemeEnum::PARTIAL_ALARM;
 }
 
 AlarmSchemeType get_alarm_scheme_type() {
@@ -222,7 +222,7 @@ void init_camera_settings_controller() {
     lv_obj_add_event_cb(ui_BtnSettingsCancelCS, camera_settings_btn_event_handler, LV_EVENT_CLICKED, NULL);
 }
 
-void open_camera_settings_screen(Channel channel, AlarmScheme alarmScheme) {
+void open_camera_settings_screen(Channel channel, AlarmSchemeEnum alarmScheme) {
     currentChannel = channel;
     currentAlarmScheme = alarmScheme;
     update_alarm_scheme_types();

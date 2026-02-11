@@ -10,7 +10,7 @@ struct Channel {
     bool channelEnabled = false;
 };
 
-enum AlarmScheme {
+enum AlarmSchemeEnum {
     DISARMED,
     PARTIAL_ALARM,
     FULL_ALARM
@@ -18,6 +18,6 @@ enum AlarmScheme {
 
 void init_camera_select_controller();
 
-void open_camera_select_screen(AlarmScheme alarmScheme);
+void open_camera_select_screen(AlarmSchemeEnum alarmScheme);
 
 #endif // CAMERA_SELECT_H

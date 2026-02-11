@@ -28,6 +28,6 @@ struct AlarmSettingsScheme {
 
 void init_camera_settings_controller();
 
-void open_camera_settings_screen(Channel channel, AlarmScheme alarmScheme);
+void open_camera_settings_screen(Channel channel, AlarmSchemeEnum alarmScheme);
 
 #endif // CAMERA_SETTINGS_CONTROLLER_H

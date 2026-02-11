@@ -16,19 +16,19 @@ bool settings_auth_check();
 
 void modify_full_alarm() {
     if (is_authorised()) {
-        open_camera_select_screen(AlarmScheme::FULL_ALARM);
+        open_camera_select_screen(AlarmSchemeEnum::FULL_ALARM);
     }
 }
 
 void modify_partial_alarm() {
     if (is_authorised()) {
-        open_camera_select_screen(AlarmScheme::PARTIAL_ALARM);
+        open_camera_select_screen(AlarmSchemeEnum::PARTIAL_ALARM);
     }
 }
 
 void modify_disarmed_alarm() {
     if (is_authorised()) {
-        open_camera_select_screen(AlarmScheme::DISARMED);
+        open_camera_select_screen(AlarmSchemeEnum::DISARMED);
     }
 }
 

@@ -4,7 +4,7 @@
 #include "api/secure_panel_api.h"
 #include "ui/ui.h"
 
-static AlarmScheme currentScheme = AlarmScheme::DISARMED;
+static AlarmSchemeEnum currentScheme = AlarmSchemeEnum::DISARMED;
 
 // Initialise array of 8 channels
 Channel channels[8] = {};
@@ -163,7 +163,7 @@ void init_camera_select_controller() {
     }
 }
 
-void open_camera_select_screen(AlarmScheme alarmScheme) {
+void open_camera_select_screen(AlarmSchemeEnum alarmScheme) {
     currentScheme = alarmScheme;
     get_channels();
     update_camera_select_ui();
