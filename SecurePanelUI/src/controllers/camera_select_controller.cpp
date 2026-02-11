@@ -145,6 +145,9 @@ void update_camera_select_ui() {
     }
 }
 
+void monitor_camera_select_network_task() {
+}
+
 void init_camera_select_controller() {
     cameraButtons[0] = ui_BtnCamera0;
     cameraButtons[1] = ui_BtnCamera1;

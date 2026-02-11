@@ -1,36 +1,30 @@
 #include "auth_handler.h"
 #include "api/secure_panel_api.h"
+#include "api/api_actions.h"
+#include "network_task.h"
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
+extern Auth auth;
 
 AuthSession currentSession;
 
 BooleanResult get_result(const char* jsonString);
 
-void authorise(AuthCredentials credentials) {
-    RequestModel req;
+BooleanResult authorise(AuthCredentials credentials) {
+    BooleanResult result = auth.checkAlarmCode(credentials);
 
-    // 1. The Base Endpoint (without the ? parameters)
-    // We use the macro from your platformio.ini
-    req.endpoint = String(SECURE_PANEL_API_URI) + "auth/CheckAlarmCode";
-
-    // 2. Set Query Parameters (?alarmCode=0000)
-    req.query["alarmCode"] = credentials.alarmCode;
-
-    // 3. Set Custom Headers
-    req.headers["X-Alarm-User"] = credentials.alarmUser;
-    req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-    // 4. Send the Request
-    String response = post_data(req);
-    
-    // 5. Deserialise response
-    BooleanResult result = get_result(response.c_str());
-
-    if (result.succeeded) {
+    if (result.succeeded && result.value == true) {
         set_authorised(credentials);
+        loadingState = LoadingState::SUCCESS; 
     }
+    else {
+        loadingState = LoadingState::ERROR; 
+    }
+
+    vTaskDelay(10);
+    return result;
 }
 
 void set_authorised(AuthCredentials credentials) {
@@ -64,21 +58,31 @@ AuthCredentials& get_credentials() {
 }
 
 BooleanResult get_result(const char* jsonString) {
+    // Initialize with safe defaults!
+    BooleanResult result;
+    result.succeeded = false;
+    result.value = false;
+    result.errorMessage = "Unknown Error";
+
+    if (jsonString == nullptr || strlen(jsonString) == 0) {
+        return result; 
+    }
+
     JsonDocument doc; 
     DeserializationError error = deserializeJson(doc, jsonString);
 
-    BooleanResult result;
-
-    // If JSON is malformed, log the error and exit to prevent null pointer access
     if (error) {
         Serial.print("JSON Parse failed: ");
         Serial.println(error.f_str());
-        return result;
+        return result; // Now returns the {false, false} default safely
     }
     
-    result.succeeded = doc["succeeded"];
-    result.value = doc["value"];
-    result.errorMessage = doc["errorMessage"];
+    // Use the '|' operator to provide fallbacks for missing JSON keys
+    result.succeeded = doc["succeeded"] | false;
+    result.value = doc["value"] | false;
+    
+    const char* msg = doc["errorMessage"];
+    if(msg) result.errorMessage = msg;
 
     return result;
 }

@@ -1,6 +1,8 @@
 #ifndef AUTH_HANDLER_H
 #define AUTH_HANDLER_H
 
+#include "secure_panel_api.h"
+
 #include <Arduino.h>
 
 struct AuthCredentials {
@@ -15,7 +17,7 @@ struct AuthSession {
     const unsigned long leaseDuration = 5 * 60 * 1000; // 5 minutes
 };
 
-void authorise(AuthCredentials credentials);
+BooleanResult authorise(AuthCredentials credentials);
 
 void set_authorised(AuthCredentials credentials);
 

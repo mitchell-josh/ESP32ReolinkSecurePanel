@@ -2,8 +2,9 @@
 #define NETWORK_TASK_H
 
 #include <cstdint>
+#include <functional>
 
-typedef void(*WorkerFunc)();
+typedef std::function<void()> WorkerFunc;
 
 struct NetworkTaskParams {
     WorkerFunc action;
@@ -15,8 +16,11 @@ enum LoadingState {
     STATE_TIMEOUT,
     IDLE,
     LOADING,
-    SUCCESS
+    SUCCESS,
+    ERROR
 };
+
+extern volatile LoadingState loadingState;
 
 void network_task(void * pvParameters);
 

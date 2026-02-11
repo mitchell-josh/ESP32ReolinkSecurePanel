@@ -2,6 +2,14 @@
 #define PIN_CONTROLLER_H
 
 #include <lvgl.h>
+#include <functional>
+
+typedef void (*PinCallback)();
+
+struct PinWorkflow {
+    PinCallback onSuccess;
+    PinCallback onFailure;
+};
 
 enum PinMode {
     MODE_UNLOCK,
@@ -13,5 +21,7 @@ enum PinMode {
 void init_pin_controller();
 
 void open_pin_screen(PinMode pinMode);
+
+void monitor_pin_network_task();
 
 #endif // PIN_CONTROLLER_H
