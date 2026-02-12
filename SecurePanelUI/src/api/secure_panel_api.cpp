@@ -17,9 +17,6 @@ String get_data(RequestModel& req) {
         }
     }
 
-    Serial.println("Sending request....");
-    Serial.println(fullUrl);
-
     delay(100); 
     yield();
 
@@ -63,9 +60,6 @@ String post_data(RequestModel& req) {
         }
     }
 
-    Serial.println("Sending request....");
-    Serial.println(fullUrl);
-
     delay(100); 
     yield();
 
@@ -79,8 +73,6 @@ String post_data(RequestModel& req) {
     JsonObject headers = req.headers.as<JsonObject>();
     if (headers.size() > 0) {
         for (JsonPair p : headers) {
-            Serial.println(p.key().c_str());
-            Serial.println(p.value().as<const char*>());
             http.addHeader(p.key().c_str(), p.value().as<const char*>());
         }
     }
@@ -102,11 +94,6 @@ String post_data(RequestModel& req) {
 
     if (httpResponseCode > 0) {
         response = http.getString();
-        Serial.printf("HTTP Response code: %d\n", httpResponseCode);
-        Serial.println(response);
-    } else {
-        Serial.printf("Error: %s\n", http.errorToString(httpResponseCode).c_str());
-        Serial.printf("Error code: %d\n", httpResponseCode);
     }
 
     http.end(); // CRITICAL: Move this as high as possible
@@ -133,13 +120,11 @@ void api_ready_check() {
         }
 
         if (isOnline) {
-            Serial.println("API is online - Proceeding...");
             break;
         }
 
         // Safety break after 120 seconds (30 attempts * 2s)
         if (attempts > 60) {
-            Serial.println("API WAKEUP TIMEOUT - Proceeding anyway...");
             break;
         }
     }

@@ -18,10 +18,8 @@ void network_task(void * pvParameters) {
 
     // After the function returns, check if it took too long
     if ((xTaskGetTickCount() - startTime) > timeoutTicks) {
-        Serial.println("Setting loading state to STATE_TIMEOUT");
         loadingState = LoadingState::STATE_TIMEOUT;
     } else if (loadingState == LOADING) {
-        Serial.println("Setting loading state to SUCCESS");
         loadingState = SUCCESS;
     }
 

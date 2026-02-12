@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 Auth auth{};
-AlarmScheme alarmScheme{};
+AlarmScheme alarmSchemeController{};
 Channels channel{};
 
 Auth::Auth() {}

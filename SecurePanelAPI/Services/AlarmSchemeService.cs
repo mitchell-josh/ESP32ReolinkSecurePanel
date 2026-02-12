@@ -99,8 +99,11 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
         };
 
     private async Task<AlarmSchemeType> GetAlarmSchemeType(AlarmSchemeQuery query)
-        => await db.AlarmSchemeTypes
-            .SingleAsync(t => t.Key == nameof(query.AlarmSchemeType));
+    {
+        string? alarmSchemeType = query.AlarmSchemeType!.ToString();
+        return await db.AlarmSchemeTypes
+            .SingleAsync(t => t.Key == alarmSchemeType);
+    }
 
     private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
     { 

@@ -20,22 +20,41 @@ static Channel currentChannel;
 static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
 
-extern AlarmScheme alarmScheme;
+extern AlarmScheme alarmSchemeController;
 
 void submit_settings() {
-    settingsScheme.alarmChannelId = currentChannel.channelId;
-    alarmScheme.saveAlarmScheme(settingsScheme);
+    cameraSettingsActiveWorkflow.onSuccess = []() {
+        lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
+            open_camera_select_screen(currentAlarmScheme);
+            lv_timer_del(timer);
+        }, 200, NULL);
+    };
+
+    cameraSettingsActiveWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Update Failed...", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    open_camera_settings_screen(currentChannel, currentAlarmScheme);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        BooleanResult result = alarmSchemeController.saveAlarmScheme(settingsScheme);
+        if (!result.succeeded) {
+            loadingState = LoadingState::ERROR;
+            delay(50);
+        }
+    }, "Saving Alarm Settings...");
 }
 
 void update_current_alarm_scheme() {
-    Serial.println("Getting alarm scheme...");
-    // Directly assign the result of the API call to the global settingsScheme
-    // This avoids creating a second 'temporary' copy on the stack
-    settingsScheme = alarmScheme.getAlarmScheme(
+    settingsScheme = alarmSchemeController.getAlarmScheme(
         currentChannel.channelId, 
         currentAlarmScheme);
-
-    Serial.println("Finishing update current alarm scheme");
 }
 
 bool parse_dropdown(lv_event_t * e) {
@@ -74,8 +93,6 @@ static void camera_settings_btn_event_handler(lv_event_t * e) {
 }
 
 void update_camera_settings_ui() {
-    Serial.println("Updating camera settings UI...");
-
     if (ui_LblCameraName == nullptr) return;
     if (ui_DropdownEnabled == nullptr) return;
     if (ui_DropdownCarsEnabled == nullptr) return;
@@ -101,8 +118,6 @@ void update_camera_settings_ui() {
     String output;
     serializeJson(doc, output);
 
-    Serial.println(output);
-
     lv_dropdown_set_selected(ui_DropdownEnabled, settingsScheme.enabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownCarsEnabled, settingsScheme.schedule.vehicleEnabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownOtherEnabled, settingsScheme.schedule.otherEnabled ? 0 : 1);
@@ -118,7 +133,6 @@ void finish_camera_settings_loading_sequence() {
 
     lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
         if (lv_scr_act() != ui_CameraSettings) {
-            lv_scr_load_anim(ui_CameraSettings, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
             update_camera_settings_ui();
         } else {
             update_camera_settings_ui();
@@ -144,7 +158,7 @@ void monitor_camera_settings_network_task() {
     if (state == LoadingState::IDLE || state == LoadingState::LOADING) return;
     
     loadingState = LoadingState::IDLE; // Reset immediately
-    delay(50); // Memory sync buffer
+    delay(100); // Memory sync buffer
 
     // Use a timer for BOTH Success and Failure to protect UI pointers
     lv_timer_create([](lv_timer_t * t) {
@@ -152,7 +166,7 @@ void monitor_camera_settings_network_task() {
 
         if (finishedState == LoadingState::SUCCESS) {
             if (cameraSettingsActiveWorkflow.onSuccess) cameraSettingsActiveWorkflow.onSuccess();
-            finish_camera_settings_loading_sequence(); // Handles transition back to Keypad
+            finish_camera_settings_loading_sequence();
         } 
         else {
             if (cameraSettingsActiveWorkflow.onFailure) {

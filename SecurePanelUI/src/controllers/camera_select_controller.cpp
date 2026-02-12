@@ -40,6 +40,9 @@ static void camera_btn_event_handler(lv_event_t * e) {
                 }
             }
         }
+
+        if (target == ui_BtnSettingsCancelSel) open_camera_select_screen(currentScheme);
+        if (target == ui_BtnSettingsOkSel) open_camera_select_screen(currentScheme);
     }
 }
 
@@ -48,7 +51,6 @@ void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
 
     cameraSelectActiveWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
-            Serial.println("System ready. Transitioning to Settings screen.");
             open_camera_settings_screen(currentChannel, currentScheme);
             lv_timer_del(timer);
       }, 200, NULL); 

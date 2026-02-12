@@ -59,7 +59,6 @@ void change_pin() {
 
 void confirm_change_pin() {
     if (!run_auth_check()) {
-        Serial.println("Unauthorised - Opening Error Screen");
         open_error_screen("Unauthorised", []() {
             confirmPinBuffer = "";
             open_pin_screen(PinMode::MODE_CONFIRM_CHANGE_PIN);
@@ -68,7 +67,6 @@ void confirm_change_pin() {
     }
 
     if (pinBuffer != confirmPinBuffer) {
-        Serial.println("Pins do not match");
         open_error_screen("PINs do not match", []() {
             confirmPinBuffer = "";
             pinBuffer = "";
