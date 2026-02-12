@@ -15,8 +15,8 @@ static PinMode currentMode = PinMode::MODE_UNLOCK;
 static String pinBuffer = "";
 static String confirmPinBuffer = "";
 
-extern Auth auth;
-extern AlarmScheme alarmSchemeController;
+extern AuthController authController;
+extern AlarmSchemeController alarmSchemeController;
 
 namespace Texts {
     const char* const ENTER_PIN = "Enter PIN";
@@ -102,7 +102,7 @@ void confirm_change_pin() {
     // We pass a wrapper that calls the actual API logic
     run_with_loading([]() {
         // This runs on Core 0
-        BooleanResult result = auth.changeAlarmCode(pinBuffer);
+        BooleanResult result = authController.changeAlarmCode(pinBuffer);
         if (!result.succeeded) {
             loadingState = LoadingState::ERROR;
         }

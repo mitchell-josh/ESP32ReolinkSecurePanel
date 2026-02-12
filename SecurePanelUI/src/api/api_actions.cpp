@@ -4,24 +4,24 @@
 
 #include <Arduino.h>
 
-Auth auth{};
-AlarmScheme alarmSchemeController{};
-Channels channel{};
+AuthController authController{};
+AlarmSchemeController alarmSchemeController{};
+ChannelController channelController{};
 
-Auth::Auth() {}
-AlarmScheme::AlarmScheme() {}
-Channels::Channels() {}
+AuthController::AuthController() {}
+AlarmSchemeController::AlarmSchemeController() {}
+ChannelController::ChannelController() {}
 
 BooleanResult get_result(const char* jsonString);
 
-BooleanResult Auth::test() {
+BooleanResult AuthController::test() {
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "auth/test";
     String response = get_data(request);
     return get_result(response.c_str());
 }
 
-BooleanResult Auth::checkAlarmCode(AuthCredentials credentials) {
+BooleanResult AuthController::checkAlarmCode(AuthCredentials credentials) {
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "auth/CheckAlarmCode";
     request.query["alarmCode"] = credentials.alarmCode;
@@ -31,7 +31,7 @@ BooleanResult Auth::checkAlarmCode(AuthCredentials credentials) {
     return get_result(response.c_str());
 }
 
-BooleanResult Auth::changeAlarmCode(String newAlarmCode) {
+BooleanResult AuthController::changeAlarmCode(String newAlarmCode) {
     AuthCredentials credentials = get_credentials();
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "auth/ChangeAlarmCode";
@@ -42,7 +42,7 @@ BooleanResult Auth::changeAlarmCode(String newAlarmCode) {
     return get_result(response.c_str());
 }
 
-AlarmSettingsScheme AlarmScheme::getAlarmScheme(int channelId, AlarmSchemeEnum alarmScheme) {
+AlarmSettingsScheme AlarmSchemeController::getAlarmScheme(int channelId, AlarmSchemeEnum alarmScheme) {
     AuthCredentials credentials = get_credentials();
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/GetAlarmScheme";
@@ -80,7 +80,7 @@ AlarmSettingsScheme AlarmScheme::getAlarmScheme(int channelId, AlarmSchemeEnum a
     return settingsScheme;
 }
 
-BooleanResult AlarmScheme::saveAlarmScheme(AlarmSettingsScheme settingsScheme) {
+BooleanResult AlarmSchemeController::saveAlarmScheme(AlarmSettingsScheme settingsScheme) {
     AuthCredentials credentials = get_credentials();
     RequestModel req;
     req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/SaveAlarmScheme";
@@ -115,7 +115,7 @@ BooleanResult AlarmScheme::saveAlarmScheme(AlarmSettingsScheme settingsScheme) {
     return get_result(response.c_str());
 }
 
-BooleanResult AlarmScheme::setAlarm(AlarmSchemeEnum alarmSchemeType) {
+BooleanResult AlarmSchemeController::setAlarm(AlarmSchemeEnum alarmSchemeType) {
     AuthCredentials credentials = get_credentials();
     RequestModel req;
     req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/SetAlarm";
@@ -139,7 +139,7 @@ BooleanResult AlarmScheme::setAlarm(AlarmSchemeEnum alarmSchemeType) {
     return get_result(response.c_str());
 }
 
-std::array<Channel, 8> Channels::getChannels() {
+std::array<Channel, 8> ChannelController::getChannels() {
     AuthCredentials credentials = get_credentials(); 
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "channels/GetChannels";

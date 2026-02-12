@@ -21,7 +21,7 @@ static Channel currentChannel;
 static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
 
-extern AlarmScheme alarmSchemeController;
+extern AlarmSchemeController alarmSchemeController;
 
 void go_back();
 

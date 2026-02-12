@@ -6,14 +6,14 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-extern Auth auth;
+extern AuthController authController;
 
 AuthSession currentSession;
 
 BooleanResult get_result(const char* jsonString);
 
 BooleanResult authorise(AuthCredentials credentials) {
-    BooleanResult result = auth.checkAlarmCode(credentials);
+    BooleanResult result = authController.checkAlarmCode(credentials);
 
     if (result.succeeded && result.value == true) {
         set_authorised(credentials);

@@ -10,7 +10,7 @@
 
 CameraSelectWorkflow cameraSelectActiveWorkflow = { nullptr, nullptr };
 
-extern Channels channel;
+extern ChannelController channelController;
 
 static AlarmSchemeEnum currentScheme = AlarmSchemeEnum::DISARMED;
 static Channel currentChannel;
@@ -26,7 +26,7 @@ void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme);
 void open_pin_back();
 
 void get_channels() {
-    channels = channel.getChannels();
+    channels = channelController.getChannels();
 }
 
 static void camera_btn_event_handler(lv_event_t * e) {
