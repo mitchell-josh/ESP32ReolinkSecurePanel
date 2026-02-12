@@ -6,22 +6,29 @@ using SecurePanelModels.Utils;
 
 namespace ReolinkAPI.Services;
 
+/// <summary>
+/// Manages session tokens for Reolink devices, handling authentication and local caching.
+/// </summary>
 public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISettings settings)
 {
     public async Task<string> GetAuthTokenAsync()
     {
+        // Check if we have a valid, non-expired token in memory
         if (memoryCache.TryGetValue("ReolinkAuthToken", out string? token))
         {
             return token ?? throw new ArgumentNullException(nameof(token));
         }
         
+        // Prepare the login payload (wrapped in an array for Reolink's CGI)
         var requestPayload = GetRequestPayload(settings.Username, settings.Password)
             .CreatePayloadArray();
         
+        // Post to the Login endpoint
         var response = await client.PostAsJsonAsyncSafe("api.cgi?cmd=Login", requestPayload);
         
         var rawJson = await response.Content.ReadAsStringAsync();
         
+        // Unwrap the response array
         var result = JsonSerializer.Deserialize<List<ReolinkAuthResponse>>(rawJson);
 
         var newToken = result?[0]?.Value?.Token;

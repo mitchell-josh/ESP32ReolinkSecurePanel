@@ -8,10 +8,17 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Controllers;
 
+/// <summary>
+/// Exposes endpoints to manage security profiles and trigger system-wide arming/disarming.
+/// </summary>
 [ApiController]
 [Route("api/[controller]/[action]")]
 public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : ControllerBase
 {
+    /// <summary>
+    /// Retrieves specific alarm configurations (e.g., Get 'Stay' mode settings for 'Front Door').
+    /// Requires a valid Alarm Code via policy.
+    /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
     public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeQuery scheme)
@@ -26,7 +33,10 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
-
+    
+    /// <summary>
+    /// Creates a new alarm configuration profile.
+    /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
     public async Task<IActionResult> SaveAlarmScheme([FromBody] AlarmSchemeDto scheme)
@@ -42,6 +52,10 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
         }
     }
 
+    /// <summary>
+    /// The 'Global Command' endpoint. Changes the house mode (Away, Home, Disarmed)
+    /// and synchronizes all physical cameras to match the stored DB configuration.
+    /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
     public async Task<IActionResult> SetAlarm([FromQuery] AlarmSchemeTypes? alarmSchemeType)

@@ -13,6 +13,10 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
+/// <summary>
+/// Manages the NVR's internal buzzer (the beep hardware inside the recorder).
+/// Typically used to alert occupants inside the building of an event.
+/// </summary>
 public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IBuzzerAlarmService
 {
     public async Task<AlarmResult<bool>> UpdateBuzzerAlarm(AlarmSchemeQuery query)
@@ -31,6 +35,10 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
         return !result.Succeeded ? AlarmResult<bool>.Failure(result.ErrorMessage!) : AlarmResult<bool>.Success(true);
     }
 
+    /// <summary>
+    /// Constructs the JSON payload for the Reolink CGI API.
+    /// Note: Ensure the detection types match the specific properties of the AlarmSchedule.
+    /// </summary>
     private SetBuzzerAlarmRequest GenerateSetBuzzerRequest(AlarmScheme scheme)
     {
         return new SetBuzzerAlarmRequest

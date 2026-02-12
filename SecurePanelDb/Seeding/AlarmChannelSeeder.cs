@@ -8,6 +8,10 @@ namespace SecurePanelDb.Seeding;
 
 public class AlarmChannelSeeder
 {
+    /// <summary>
+    /// Entry point for the seeding process. 
+    /// Coordinates the synchronization between Reolink Hardware and the SQL Database.
+    /// </summary>
     public static async Task SeedData(DbContext context, ReolinkClient reolinkClient)
     {
         await SeedAlarmChannels(context, reolinkClient);
@@ -15,10 +19,14 @@ public class AlarmChannelSeeder
 
     private static async Task SeedAlarmChannels(DbContext db, ReolinkClient reolinkClient)
     {
+        // Fetch current hardware state from the NVR/Camera
         var channelStatuses = await GetChannels(reolinkClient);
         
+        // Identify what we already know. We use 'Identifier' (Hardware Index) 
+        // rather than 'AlarmChannelId' (Database PK) to track identity.
         var existingKeys = await db.Set<AlarmChannel>().Select(c => c.Identifier).ToListAsync();
 
+        // Only prepare to insert channels that don't exist in our DB yet.
         var newChannels = channelStatuses
             .Where(cs => !existingKeys.Contains(cs.Channel!.Value)) 
             .Select(cs => new AlarmChannel
@@ -49,6 +57,10 @@ public class AlarmChannelSeeder
         }
     }
     
+    /// <summary>
+    /// Private helper to wrap the Reolink Client call. 
+    /// Gracefully handles API failures by returning an empty list instead of null.
+    /// </summary>
     private static async Task<List<ChannelStatuses>> GetChannels(ReolinkClient reolinkClient)
     {
         var result = await reolinkClient.GetChannelStatus();

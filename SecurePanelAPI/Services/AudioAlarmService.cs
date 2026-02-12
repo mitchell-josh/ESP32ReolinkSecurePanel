@@ -14,10 +14,17 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
+/// <summary>
+/// Manages the physical Audio Alarm (Siren) settings on Reolink cameras.
+/// Translates database schedules into hardware-specific binary strings.
+/// </summary>
 public class AudioAlarmService(
     ReolinkClient reolinkClient, 
     SecurePanelDbContext db) : IAudioAlarmService
 {
+    /// <summary>
+    /// Fetches the desired state from the DB and pushes it to the camera API.
+    /// </summary>
     public async Task<AlarmResult<bool>> UpdateAudioAlarm(AlarmSchemeQuery query)
     {
         // Get local scheme data
@@ -34,6 +41,10 @@ public class AudioAlarmService(
         return !result.Succeeded ? AlarmResult<bool>.Failure(result.ErrorMessage!) : AlarmResult<bool>.Success(true);
     }
 
+    /// <summary>
+    /// Maps our clean domain model (bools) to the Reolink AI schedule format.
+    /// Reolink requires a 168-character string of '1's and '0's for each detection type.
+    /// </summary>
     private static SetAudioAlarmRequest GenerateSetAudioRequest(AlarmScheme scheme)
     {
         return new SetAudioAlarmRequest

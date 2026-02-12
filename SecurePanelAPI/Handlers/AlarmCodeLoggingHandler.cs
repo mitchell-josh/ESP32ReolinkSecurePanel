@@ -1,5 +1,9 @@
 namespace SecurePanelAPI.Handlers;
 
+/// <summary>
+/// Intercepts outgoing HTTP requests and incoming responses to provide 
+/// visibility into the Reolink API communication.
+/// </summary>
 public class AlarmCodeLoggingHandler(ILogger<AlarmCodeLoggingHandler> logger) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

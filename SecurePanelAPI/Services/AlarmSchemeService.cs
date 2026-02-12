@@ -9,6 +9,10 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
+/// <summary>
+/// The primary service responsible for managing alarm configurations and 
+/// pushing those configurations to physical hardware.
+/// </summary>
 public class AlarmSchemeService(
     SecurePanelDbContext db,
     IAudioAlarmService audioAlarmService,
@@ -26,6 +30,10 @@ public class AlarmSchemeService(
         return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(await this.GetDefaultScheme(query)));
     }
 
+    /// <summary>
+    /// Saves a new alarm profile. Includes automated versioning by using DateCreated 
+    /// rather than updating existing records, allowing for a configuration history.
+    /// </summary>
     public async Task<AlarmResult<bool>> SaveAlarmScheme(AlarmSchemeDto scheme)
     {
         if (scheme.Validate())
@@ -62,6 +70,10 @@ public class AlarmSchemeService(
         return AlarmResult<List<AlarmSchemeTypeDto>>.Success(alarmSchemeTypes);
     }
 
+    /// <summary>
+    /// Orchestrates the 'Global Arming' process. It fetches all configuration 
+    /// profiles for a specific mode and pushes them to every hardware channel.
+    /// </summary>
     public async Task<AlarmResult<bool>> SetAlarm(AlarmSchemeTypes alarmSchemeType)
     {
         var schemes = await this.GetSchemes(alarmSchemeType) ?? [];

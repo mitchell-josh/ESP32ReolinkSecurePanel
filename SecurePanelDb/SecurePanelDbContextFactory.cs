@@ -5,6 +5,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace SecurePanelDb;
 
+/// <summary>
+/// Provides a way for EF Core CLI tools to create a DbContext instance at design time.
+/// This enables 'dotnet ef migrations add' to work correctly outside of the main app.
+/// </summary>
 public class SecurePanelDbContextFactory : IDesignTimeDbContextFactory<SecurePanelDbContext>
 {
     public SecurePanelDbContext CreateDbContext(string[] args)
@@ -19,6 +23,9 @@ public class SecurePanelDbContextFactory : IDesignTimeDbContextFactory<SecurePan
         return new SecurePanelDbContext(optionsBuilder.Options);
     }
     
+    /// <summary>
+    /// Builds a temporary configuration root to read the connection string.
+    /// </summary>
     private IConfigurationRoot GetConfiguration()
     {
         return new ConfigurationBuilder()

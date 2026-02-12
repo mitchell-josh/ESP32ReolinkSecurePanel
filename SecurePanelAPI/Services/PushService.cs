@@ -13,6 +13,10 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
+/// <summary>
+/// Manages the Push Notification settings on the Reolink hardware.
+/// Controls when the camera is allowed to send alerts to the Reolink Cloud/Mobile App.
+/// </summary>
 public class PushService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IPushService
 {
     public async Task<AlarmResult<bool>> UpdatePush(AlarmSchemeQuery query)
@@ -31,6 +35,11 @@ public class PushService(ReolinkClient reolinkClient, SecurePanelDbContext db) :
         return !result.Succeeded ? AlarmResult<bool>.Failure(result.ErrorMessage!) : AlarmResult<bool>.Success(true);
     }
 
+    /// <summary>
+    /// Constructs the Push-specific request.
+    /// Note: Similar to the BuzzerService, verify if you want to map all detection 
+    /// types to 'PetsEnabled' or separate them by category.
+    /// </summary>
     private static SetPushRequest GenerateSetPushRequest(AlarmScheme scheme)
     {
         return new SetPushRequest

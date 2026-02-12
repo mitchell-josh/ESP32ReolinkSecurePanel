@@ -13,6 +13,10 @@ public class AlarmCodeHandler(
     SecurePanelDbContext db,
     IPasswordHasher<AlarmUser> hasher) : AuthorizationHandler<AlarmCodeRequirement>
 {
+    /// <summary>
+    /// Custom authorization logic that validates the numeric PIN sent in request headers 
+    /// against the hashed values stored in the database.
+    /// </summary>
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AlarmCodeRequirement requirement)
     {
         var request = httpContextAccessor?.HttpContext?.Request;

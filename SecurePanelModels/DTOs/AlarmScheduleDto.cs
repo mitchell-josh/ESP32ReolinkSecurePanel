@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace SecurePanelModels.DTOs;
 
+/// <summary>
+/// A simplified representation of AI detection toggles for use in UI or external APIs.
+/// </summary>
 public class AlarmScheduleDto
 {
     [JsonPropertyName("peopleEnabled")]
@@ -16,6 +19,9 @@ public class AlarmScheduleDto
     [JsonPropertyName("otherEnabled")]
     public bool? OtherEnabled { get; set; }
 
+    /// <summary>
+    /// Ensures all required detection toggles are present before processing.
+    /// </summary>
     public bool Validate() =>
         this.PeopleEnabled.HasValue 
         && this.VehicleEnabled.HasValue 

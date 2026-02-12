@@ -2,8 +2,15 @@ using ReolinkAPI.Services;
 
 namespace ReolinkAPI.Clients;
 
+/// <summary>
+/// An HTTP message handler that automatically injects the Reolink session token 
+/// into the query string of every outgoing request.
+/// </summary>
 public class ReolinkAuthClient(ReolinkAuthService authService) : DelegatingHandler
 {
+    /// <summary>
+    /// Intercepts the HTTP request to append the 'token' parameter required by Reolink firmware.
+    /// </summary>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
         // Get the token (AuthService should handle caching internally)

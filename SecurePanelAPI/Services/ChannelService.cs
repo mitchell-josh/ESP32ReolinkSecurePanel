@@ -10,8 +10,16 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
+/// <summary>
+/// Synchronizes physical hardware channels with the local database records.
+/// Ensures the UI displays accurate names and connectivity status.
+/// </summary>
 public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db) : IChannelService
 {
+    /// <summary>
+    /// The high-level workflow: Discovers new hardware, updates status of old hardware, 
+    /// and returns the final mapped DTO list.
+    /// </summary>
     public async Task<AlarmResult<List<ChannelDto>>> GetChannels()
     {
         if (!(await this.CreateChannels()).Succeeded)
@@ -37,6 +45,10 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
         return AlarmResult<List<ChannelDto>>.Success(channels);
     }
 
+    /// <summary>
+    /// Compares Hardware IDs (Identifiers) against the DB. 
+    /// Adds any cameras that have been newly plugged into the NVR.
+    /// </summary>
     public async Task<AlarmResult<bool>> CreateChannels()
     {
         var result = await reolinkClient.GetChannelStatus();
@@ -80,6 +92,9 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
         return AlarmResult<bool>.Success(true);
     }
 
+    /// <summary>
+    /// Detects changes in Names or Online status for existing records.
+    /// </summary>
     public async Task<AlarmResult<bool>> UpdateChannels()
     {
         var result = await reolinkClient.GetChannelStatus();

@@ -3,14 +3,17 @@ using ReolinkAPI.Shared;
 
 namespace ReolinkAPI.Channels;
 
-public class ChannelRequest
+/// <summary>
+/// Represents a request to retrieve the current status of all channels.
+/// Inherits from <see cref="BaseRequest"/> to ensure consistent command and action handling.
+/// </summary>
+public class ChannelRequest() : BaseRequest("GetChannelStatus", 0)
 {
-    [JsonPropertyName("cmd")] 
-    public string Command { get; set; } = "GetChannelStatus";
-
-    [JsonPropertyName("action")]
-    public int Action { get; set; } = 0;
-
+    /// <summary>
+    /// Gets or sets the parameters for the request.
+    /// Since this command queries the global state, an <see cref="EmptyParam"/> is provided 
+    /// to satisfy the Reolink firmware's JSON structure requirements.
+    /// </summary>
     [JsonPropertyName("param")] 
     public EmptyParam Param { get; set; } = new();
 }

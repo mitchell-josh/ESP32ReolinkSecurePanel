@@ -10,6 +10,10 @@ using SecurePanelModels.Utils;
 
 namespace ReolinkAPI.Clients;
 
+/// <summary>
+/// The primary client for interacting with Reolink device APIs.
+/// Requires an HttpClient pre-configured with the <see cref="ReolinkAuthClient"/> handler.
+/// </summary>
 public class ReolinkClient(HttpClient client)
 {
     public async Task<ReolinkResult<ChannelResponse>> GetChannelStatus()
@@ -30,6 +34,10 @@ public class ReolinkClient(HttpClient client)
     public async Task<ReolinkResult<PushResponse>> SetPush(SetPushRequest request) 
         => await this.PostAsync<PushResponse>("api.cgi?cmd=SetPushV20", request);
 
+    /// <summary>
+    /// Sends a POST request to the camera, wrapping the payload in an array 
+    /// and unwrapping the first result from the response array.
+    /// </summary>
     private async Task<ReolinkResult<T>> PostAsync<T>(string requestUri, object payload)
     {
         var body = payload.CreatePayloadArray();
