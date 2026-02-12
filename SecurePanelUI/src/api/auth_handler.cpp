@@ -6,12 +6,19 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+// Reference to the global AuthController defined in the main API client file
 extern AuthController authController;
 
+// Holds the volatile state of the current user session (in RAM only)
 AuthSession currentSession;
 
+// Forward declaration of the internal JSON result parser
 BooleanResult get_result(const char* jsonString);
 
+/**
+ * Attempts to validate a PIN with the backend.
+ * Updates the global LoadingState to drive UI feedback (Spinners/Error icons).
+ */
 BooleanResult authorise(AuthCredentials credentials) {
     BooleanResult result = authController.checkAlarmCode(credentials);
 
@@ -27,18 +34,30 @@ BooleanResult authorise(AuthCredentials credentials) {
     return result;
 }
 
+/**
+ * Marks the local session as active and timestamps the entry.
+ * Stores credentials for subsequent API calls that require headers.
+ */
 void set_authorised(AuthCredentials credentials) {
     currentSession.isAuthenticated = true;
     currentSession.authenticatedAt = millis();
     currentSession.credentials = credentials;
 }
 
+/**
+ * Immediate session termination (Logout).
+ * Clears credentials from memory for security.
+ */
 void clear_authorised() {
     currentSession.isAuthenticated = false;
     currentSession.authenticatedAt = 0;
     currentSession.credentials.alarmCode = "";
 }
 
+/**
+ * Safety check used by the UI and network tasks.
+ * Implements an automatic "Lease" expiration (defaulting to 5 minutes).
+ */
 bool is_authorised() {
     if (!currentSession.isAuthenticated) return false;
 
@@ -53,10 +72,17 @@ bool is_authorised() {
     return true;
 }
 
+/**
+ * Provides a reference to the active credentials for header building.
+ */
 AuthCredentials& get_credentials() {
     return currentSession.credentials;
 }
 
+/**
+ * UNIVERSAL PARSER
+ * Converts standard backend 'AlarmResult' JSON strings into C++ structs.
+ */
 BooleanResult get_result(const char* jsonString) {
     // Initialize with safe defaults!
     BooleanResult result;

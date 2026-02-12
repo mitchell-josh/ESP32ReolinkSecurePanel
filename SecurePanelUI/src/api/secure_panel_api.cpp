@@ -1,5 +1,9 @@
 #include "api/secure_panel_api.h"
 
+/**
+ * Executes an HTTP GET request.
+ * Automatically serializes JsonObject query parameters into a URL-encoded string.
+ */
 String get_data(RequestModel& req) {
     HTTPClient http;
     http.setConnectTimeout(10000); // 3 seconds to find the server
@@ -34,6 +38,7 @@ String get_data(RequestModel& req) {
     int httpResponseCode = http.GET();
     String response = "{}";
 
+    // Only read body if the server returned a valid code (> 0)
     if (httpResponseCode > 0) {
         response = http.getString();
     }
@@ -43,6 +48,10 @@ String get_data(RequestModel& req) {
     return response;
 }
 
+/**
+ * Executes an HTTP POST request.
+ * Handles both JSON body serialization and query parameters simultaneously.
+ */
 String post_data(RequestModel& req) {
     HTTPClient http;
     http.setConnectTimeout(10000); // 3 seconds to find the server
@@ -103,6 +112,11 @@ String post_data(RequestModel& req) {
     return response;
 }
 
+/**
+ * Blocking boot-sequence check.
+ * Continually pings the 'auth/test' endpoint until the backend is reachable.
+ * Useful for ensuring the device waits for the server to spin up after a power cut.
+ */
 void api_ready_check() {
     bool isOnline = false;
     int attempts = 0;

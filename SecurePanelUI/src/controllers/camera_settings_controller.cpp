@@ -10,13 +10,21 @@
 
 #include <array>
 
+/**
+ * Global workflow tracker for async Save/Load operations.
+ */
 CameraSettingsWorkflow cameraSettingsActiveWorkflow = { nullptr, nullptr };
 
+/**
+ * Dropdown Index Mapping
+ * Matches the order of items in the UI (e.g., 0: Enabled, 1: Disabled).
+ */
 enum DropdownValues {
     DROPDOWN_ENABLED,
     DROPDOWN_DISABLED
 };
 
+// Internal state for the current editing context
 static Channel currentChannel;
 static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
@@ -25,6 +33,10 @@ extern AlarmSchemeController alarmSchemeController;
 
 void go_back();
 
+/**
+ * PERSISTENCE: SUBMIT SETTINGS
+ * Triggers the background network task to save current settingsScheme to the DB.
+ */
 void submit_settings() {
     cameraSettingsActiveWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
@@ -60,6 +72,10 @@ void update_current_alarm_scheme() {
         currentAlarmScheme);
 }
 
+/**
+ * DATA MAPPING: PARSE DROPDOWN
+ * Helper to convert LVGL dropdown selection index to a boolean.
+ */
 bool parse_dropdown(lv_event_t * e) {
     lv_obj_t * dropdown = lv_event_get_target(e);
 
@@ -75,6 +91,10 @@ bool parse_dropdown(lv_event_t * e) {
     return false; // default to false
 }
 
+/**
+ * UI EVENT HANDLER
+ * Updates the local 'settingsScheme' struct in real-time as the user changes dropdowns.
+ */
 static void camera_settings_btn_event_handler(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * dropdown = lv_event_get_target(e);
@@ -122,6 +142,10 @@ void go_back() {
     }, "Going Back...");
 }
 
+/**
+ * UI SYNC: REFRESH DROPDOWNS
+ * Pulls data from 'settingsScheme' and sets the visual state of the UI components.
+ */
 void update_camera_settings_ui() {
     if (ui_LblCameraName == nullptr) return;
     if (ui_DropdownEnabled == nullptr) return;
@@ -179,6 +203,10 @@ void finish_camera_settings_loading_sequence() {
     }, 100, &is_transitioning); // Increased to 100ms for extra safety
 }
 
+/**
+ * ASYNC MONITOR
+ * Checks the status of the background core (Core 0) and executes UI callbacks on Core 1.
+ */
 void monitor_camera_settings_network_task() {
     if (cameraSettingsActiveWorkflow.onSuccess == nullptr && cameraSettingsActiveWorkflow.onFailure == nullptr) {
         return; 
@@ -228,6 +256,10 @@ void init_camera_settings_controller() {
     lv_obj_add_event_cb(ui_BtnSettingsCancelCS, camera_settings_btn_event_handler, LV_EVENT_CLICKED, NULL);
 }
 
+/**
+ * ENTRY POINT
+ * Fetches the latest settings from the server for this camera/mode and loads the screen.
+ */
 void open_camera_settings_screen(Channel channel, AlarmSchemeEnum alarmScheme) {
     currentChannel = channel;
     currentAlarmScheme = alarmScheme;

@@ -9,8 +9,13 @@
 
 #include <Arduino.h>
 
+/**
+ * Async Workflow for the Keypad.
+ * Tracks what to do after an authentication or alarm-set command finishes.
+ */
 PinWorkflow activeWorkflow = { nullptr, nullptr };
 
+// Internal state for the keypad buffer and current operational mode
 static PinMode currentMode = PinMode::MODE_UNLOCK;
 static String pinBuffer = "";
 static String confirmPinBuffer = "";
@@ -18,11 +23,24 @@ static String confirmPinBuffer = "";
 extern AuthController authController;
 extern AlarmSchemeController alarmSchemeController;
 
+/**
+ * UI Text Constants
+ */
 namespace Texts {
     const char* const ENTER_PIN = "Enter PIN";
     const char* const ENTER_NEW_PIN = "Enter New PIN";
     const char* const CONFIRM_PIN = "Confirm PIN";
     const char* const UNLOCKED = "Unlocked";
+    const char* const UNAUTHORISED = "Unauthorised";
+    const char* const PIN_MISMATCH = "PINs do not match";
+    const char* const UPDATE_FAILED = "Update failed";
+    const char* const UPDATING_PIN = "Updating PIN";
+    const char* const UNLOCKING = "Unlocking";
+    const char* const ALARM_SET = "Full Alarm Set";
+    const char* const ALARM_SET_FAILED = "Alarm Set Failed";
+    const char* const PARTIAL_SET = "Partial Alarm Set";
+    const char* const DISARMED = "Disarmed";
+    const char* const SETTING_ALARM = "Setting Alarm";
 }
 
 void set_full_alarm();
@@ -61,7 +79,7 @@ void change_pin() {
 
 void confirm_change_pin() {
     if (!run_auth_check()) {
-        open_error_screen("Unauthorised", []() {
+        open_error_screen(Texts::UNAUTHORISED, []() {
             confirmPinBuffer = "";
             open_pin_screen(PinMode::MODE_CONFIRM_CHANGE_PIN);
         });
@@ -69,7 +87,7 @@ void confirm_change_pin() {
     }
 
     if (pinBuffer != confirmPinBuffer) {
-        open_error_screen("PINs do not match", []() {
+        open_error_screen(Texts::PIN_MISMATCH, []() {
             confirmPinBuffer = "";
             pinBuffer = "";
             open_pin_screen(PinMode::MODE_CHANGE_PIN);
@@ -88,7 +106,7 @@ void confirm_change_pin() {
     };
 
     activeWorkflow.onFailure = []() {
-        open_error_screen("Update Failed", []() {
+        open_error_screen(Texts::UPDATE_FAILED, []() {
             pinBuffer = "";
             confirmPinBuffer = "";
             lv_timer_create([](lv_timer_t * retryTimer) {
@@ -106,7 +124,7 @@ void confirm_change_pin() {
         if (!result.succeeded) {
             loadingState = LoadingState::ERROR;
         }
-    }, "Updating PIN...");
+    }, Texts::UPDATING_PIN);
 }
 
 // Static wrappers for callbacks
@@ -144,7 +162,7 @@ void unlock_pin() {
         safeCreds.alarmCode = safeCode;
         BooleanResult result = authorise(safeCreds);
         loadingState = result.succeeded ? LoadingState::SUCCESS : LoadingState::ERROR;
-    }, "Unlocking...");
+    }, Texts::UNLOCKING);
 }
 
 static void pin_btn_event_handler(lv_event_t * e) {
@@ -179,7 +197,7 @@ static void pin_btn_event_handler(lv_event_t * e) {
 void set_full_alarm() {
     activeWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Alarm Set.", []() {
+            open_error_screen(Texts::ALARM_SET, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -192,7 +210,7 @@ void set_full_alarm() {
 
     activeWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Failed to set alarm.", []() {
+            open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -208,13 +226,13 @@ void set_full_alarm() {
         if (!result.succeeded) {
             loadingState = LoadingState::ERROR;
         }
-    }, "Setting Alarm...");
+    }, Texts::SETTING_ALARM);
 }
 
 void set_partial_alarm() {
         activeWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Alarm Set.", []() {
+            open_error_screen(Texts::PARTIAL_SET, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -227,7 +245,7 @@ void set_partial_alarm() {
 
     activeWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Failed to set alarm.", []() {
+            open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -243,13 +261,13 @@ void set_partial_alarm() {
         if (!result.succeeded) {
             loadingState = LoadingState::ERROR;
         }
-    }, "Setting Alarm...");
+    }, Texts::SETTING_ALARM);
 }
 
 void set_disarmed() {
         activeWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Alarm Set.", []() {
+            open_error_screen(Texts::DISARMED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -262,7 +280,7 @@ void set_disarmed() {
 
     activeWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
-            open_error_screen("Failed to set alarm.", []() {
+            open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
                     clear_authorised();
                     open_pin_screen(PinMode::MODE_UNLOCK);
@@ -278,7 +296,7 @@ void set_disarmed() {
         if (!result.succeeded) {
             loadingState = LoadingState::ERROR;
         }
-    }, "Setting Alarm...");
+    }, Texts::SETTING_ALARM);
 }
 
 void open_settings() {

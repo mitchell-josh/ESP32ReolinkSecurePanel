@@ -8,16 +8,19 @@
 #include "api/network_task.h"
 #include "ui/ui.h"
 
+// Workflow structure to manage Success/Failure callbacks for async UI transitions
 CameraSelectWorkflow cameraSelectActiveWorkflow = { nullptr, nullptr };
 
 extern ChannelController channelController;
 
+// Local state to track which alarm mode (Home/Away/Stay) is being configured
 static AlarmSchemeEnum currentScheme = AlarmSchemeEnum::DISARMED;
 static Channel currentChannel;
 
 // Initialise array of 8 channels
 std::array<Channel, 8> channels = {};
 
+// UI Object pointers for LVGL labels and buttons
 lv_obj_t* cameraLabels[8];
 lv_obj_t* cameraButtons[8];
 
@@ -29,28 +32,40 @@ void get_channels() {
     channels = channelController.getChannels();
 }
 
+/**
+ * UI EVENT HANDLER
+ * Processes clicks on camera tiles or navigation buttons.
+ */
 static void camera_btn_event_handler(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t * target = lv_event_get_target(e); // The button object pointer
 
     if(code == LV_EVENT_CLICKED) {
+        // Check if a specific camera button was pressed
         for (int i = 0; i < 8; i++) {
             if (target == cameraButtons[i]) {
                 Channel channel = channels[i];
+                // Only allow entry into settings if the camera is reported as online
                 if (channel.channelEnabled) {
                     open_camera_settings(channel, currentScheme);
                 }
             }
         }
 
+        // Handle navigation back to the PIN/Keypad screen
         if (target == ui_BtnSettingsCancelSel) open_pin_back();
         if (target == ui_BtnSettingsOkSel) open_pin_back();
     }
 }
 
+/**
+ * NAVIGATION: BACK TO PIN SCREEN
+ * Wraps the transition in a network task to ensure session state is synced.
+ */
 void open_pin_back() {
     cameraSelectActiveWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
+            // Check auth state to decide if we show the Locked or Unlocked keypad
             open_pin_screen(is_authorised() ? PinMode::MODE_UNLOCKED : PinMode::MODE_UNLOCK);
             lv_timer_del(timer);
         }, 200, NULL);
@@ -60,7 +75,7 @@ void open_pin_back() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen("Failed to return. Retrying.", []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
-                    clear_authorised();
+                    clear_authorised(); // Force logout
                     open_pin_screen(PinMode::MODE_UNLOCK);
                     lv_timer_del(retryTimer);
                 }, 50, NULL);
@@ -103,15 +118,15 @@ void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
     }, "Loading...");
 }
 
+/**
+ * UI SYNC: UPDATE LABELS
+ * Iterates through the 8 UI slots and maps them to physical camera names.
+ */
 void update_camera_select_ui() {
-    cameraLabels[0] = ui_LblCamera0;
-    cameraLabels[1] = ui_LblCamera1;
-    cameraLabels[2] = ui_LblCamera2;
-    cameraLabels[3] = ui_LblCamera3;
-    cameraLabels[4] = ui_LblCamera4;
-    cameraLabels[5] = ui_LblCamera5;
-    cameraLabels[6] = ui_LblCamera6;
-    cameraLabels[7] = ui_LblCamera7;
+    cameraLabels[0] = ui_LblCamera0; cameraLabels[1] = ui_LblCamera1;
+    cameraLabels[2] = ui_LblCamera2; cameraLabels[3] = ui_LblCamera3;
+    cameraLabels[4] = ui_LblCamera4; cameraLabels[5] = ui_LblCamera5;
+    cameraLabels[6] = ui_LblCamera6; cameraLabels[7] = ui_LblCamera7;
 
     for (int i = 0; i < 8; i++) {
         if (cameraLabels[i] == nullptr) continue;
@@ -121,6 +136,7 @@ void update_camera_select_ui() {
             lv_label_set_text(cameraLabels[i], name);
         }
         else {
+            // Visual feedback for disconnected/unpopulated channels
             lv_label_set_text(cameraLabels[i], "");
             lv_obj_add_state(cameraLabels[i], LV_STATE_DISABLED);
         }
@@ -147,6 +163,11 @@ void finish_camera_select_loading_sequence() {
     }, 100, &is_transitioning); // Increased to 100ms for extra safety
 }
 
+/**
+ * ASYNC MONITOR
+ * Polled by the main loop to check if background network tasks have finished.
+ * Dispatches Success/Failure callbacks on the main UI thread.
+ */
 void monitor_camera_select_network_task() {
     if (cameraSelectActiveWorkflow.onSuccess == nullptr && cameraSelectActiveWorkflow.onFailure == nullptr) {
         return; 
@@ -186,15 +207,15 @@ void monitor_camera_select_network_task() {
     }, 100, (void*)(uintptr_t)state);
 }
 
+/**
+ * INITIALIZATION
+ * Attaches click listeners to the static UI elements created in the firmware boot.
+ */
 void init_camera_select_controller() {
-    cameraButtons[0] = ui_BtnCamera0;
-    cameraButtons[1] = ui_BtnCamera1;
-    cameraButtons[2] = ui_BtnCamera2;
-    cameraButtons[3] = ui_BtnCamera3;
-    cameraButtons[4] = ui_BtnCamera4;
-    cameraButtons[5] = ui_BtnCamera5;
-    cameraButtons[6] = ui_BtnCamera6;
-    cameraButtons[7] = ui_BtnCamera7;
+    cameraButtons[0] = ui_BtnCamera0; cameraButtons[1] = ui_BtnCamera1;
+    cameraButtons[2] = ui_BtnCamera2; cameraButtons[3] = ui_BtnCamera3;
+    cameraButtons[4] = ui_BtnCamera4; cameraButtons[5] = ui_BtnCamera5;
+    cameraButtons[6] = ui_BtnCamera6; cameraButtons[7] = ui_BtnCamera7;
 
     for (int i = 0; i < 8; i++) {
         lv_obj_add_event_cb(cameraButtons[i], camera_btn_event_handler, LV_EVENT_CLICKED, NULL);

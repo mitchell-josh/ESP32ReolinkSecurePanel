@@ -4,16 +4,25 @@
 
 #include <Arduino.h>
 
+// Global instances for controlling the system via the UI or other hardware triggers
 AuthController authController{};
 AlarmSchemeController alarmSchemeController{};
 ChannelController channelController{};
 
+// Default constructors
 AuthController::AuthController() {}
 AlarmSchemeController::AlarmSchemeController() {}
 ChannelController::ChannelController() {}
 
+// Forward declaration for helper to parse BooleanResult from JSON strings
 BooleanResult get_result(const char* jsonString);
 
+/**
+ * AUTHENTICATION CONTROLLER
+ * Manages identity validation and credential updates.
+ */
+
+// Simple connectivity check to verify API accessibility
 BooleanResult AuthController::test() {
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "auth/test";
@@ -21,6 +30,7 @@ BooleanResult AuthController::test() {
     return get_result(response.c_str());
 }
 
+// Validates a user PIN against the backend; sends credentials in both query and custom security headers
 BooleanResult AuthController::checkAlarmCode(AuthCredentials credentials) {
     RequestModel request;
     request.endpoint = String(SECURE_PANEL_API_URI) + "auth/CheckAlarmCode";
@@ -31,6 +41,7 @@ BooleanResult AuthController::checkAlarmCode(AuthCredentials credentials) {
     return get_result(response.c_str());
 }
 
+// Updates the current user's PIN on the server after retrieving current local credentials
 BooleanResult AuthController::changeAlarmCode(String newAlarmCode) {
     AuthCredentials credentials = get_credentials();
     RequestModel request;
@@ -42,6 +53,12 @@ BooleanResult AuthController::changeAlarmCode(String newAlarmCode) {
     return get_result(response.c_str());
 }
 
+/**
+ * ALARM SCHEME CONTROLLER
+ * Manages the logic for different security modes (Home, Away, etc.) and their schedules.
+ */
+
+// Fetches the specific detection settings (People, Pets, Vehicles) for a given channel and mode
 AlarmSettingsScheme AlarmSchemeController::getAlarmScheme(int channelId, AlarmSchemeEnum alarmScheme) {
     AuthCredentials credentials = get_credentials();
     RequestModel request;
@@ -80,6 +97,7 @@ AlarmSettingsScheme AlarmSchemeController::getAlarmScheme(int channelId, AlarmSc
     return settingsScheme;
 }
 
+// Persists local scheme settings to the backend database
 BooleanResult AlarmSchemeController::saveAlarmScheme(AlarmSettingsScheme settingsScheme) {
     AuthCredentials credentials = get_credentials();
     RequestModel req;
@@ -115,6 +133,7 @@ BooleanResult AlarmSchemeController::saveAlarmScheme(AlarmSettingsScheme setting
     return get_result(response.c_str());
 }
 
+// Triggers a global state change (e.g., set whole system to 'Full Arm')
 BooleanResult AlarmSchemeController::setAlarm(AlarmSchemeEnum alarmSchemeType) {
     AuthCredentials credentials = get_credentials();
     RequestModel req;
@@ -139,6 +158,12 @@ BooleanResult AlarmSchemeController::setAlarm(AlarmSchemeEnum alarmSchemeType) {
     return get_result(response.c_str());
 }
 
+/**
+ * CHANNEL CONTROLLER
+ * Manages the list of hardware camera channels.
+ */
+
+// Retrieves an array of up to 8 camera channels from the system
 std::array<Channel, 8> ChannelController::getChannels() {
     AuthCredentials credentials = get_credentials(); 
     RequestModel request;
