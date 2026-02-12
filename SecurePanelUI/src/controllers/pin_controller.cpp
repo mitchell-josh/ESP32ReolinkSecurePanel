@@ -85,7 +85,10 @@ void confirm_change_pin() {
         open_error_screen("Update Failed", []() {
             pinBuffer = "";
             confirmPinBuffer = "";
-            open_pin_screen(PinMode::MODE_CHANGE_PIN);
+            lv_timer_create([](lv_timer_t * retryTimer) {
+                open_pin_screen(PinMode::MODE_CHANGE_PIN);
+                lv_timer_del(retryTimer);
+            }, 50, NULL);
         });
     };
 

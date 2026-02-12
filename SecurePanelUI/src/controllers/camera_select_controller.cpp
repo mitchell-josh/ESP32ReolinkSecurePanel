@@ -1,5 +1,6 @@
 #include "camera_select_controller.h"
 #include "camera_settings_controller.h"
+#include "pin_controller.h"
 #include "error_controller.h"
 #include "api/auth_handler.h"
 #include "api/api_actions.h"
@@ -22,6 +23,7 @@ lv_obj_t* cameraButtons[8];
 
 BooleanResult get_result(const char* jsonString);
 void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme);
+void open_pin_back();
 
 void get_channels() {
     channels = channel.getChannels();
@@ -41,9 +43,36 @@ static void camera_btn_event_handler(lv_event_t * e) {
             }
         }
 
-        if (target == ui_BtnSettingsCancelSel) open_camera_select_screen(currentScheme);
-        if (target == ui_BtnSettingsOkSel) open_camera_select_screen(currentScheme);
+        if (target == ui_BtnSettingsCancelSel) open_pin_back();
+        if (target == ui_BtnSettingsOkSel) open_pin_back();
     }
+}
+
+void open_pin_back() {
+    cameraSelectActiveWorkflow.onSuccess = []() {
+        lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
+            open_pin_screen(is_authorised() ? PinMode::MODE_UNLOCKED : PinMode::MODE_UNLOCK);
+            lv_timer_del(timer);
+        }, 200, NULL);
+    };
+
+    cameraSelectActiveWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Failed to return. Retrying.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        loadingState = LoadingState::SUCCESS;
+        delay(50);
+    }, "Going Back...");
 }
 
 void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
@@ -54,6 +83,18 @@ void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
             open_camera_settings_screen(currentChannel, currentScheme);
             lv_timer_del(timer);
       }, 200, NULL); 
+    };
+
+    cameraSelectActiveWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Unable to open camera settings", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    open_camera_select_screen(currentScheme);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
     };
 
     run_with_loading([]() {
@@ -158,6 +199,9 @@ void init_camera_select_controller() {
     for (int i = 0; i < 8; i++) {
         lv_obj_add_event_cb(cameraButtons[i], camera_btn_event_handler, LV_EVENT_CLICKED, NULL);
     }
+
+    lv_obj_add_event_cb(ui_BtnSettingsCancelSel, camera_btn_event_handler, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(ui_BtnSettingsOkSel, camera_btn_event_handler, LV_EVENT_CLICKED, NULL);
 }
 
 void open_camera_select_screen(AlarmSchemeEnum alarmScheme) {

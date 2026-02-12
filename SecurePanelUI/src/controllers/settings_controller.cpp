@@ -33,11 +33,11 @@ void modify_disarmed_alarm() {
 }
 
 void set_ok() {
-    return;
+    open_pin_screen(is_authorised() ? PinMode:: MODE_UNLOCKED : MODE_UNLOCK);
 }
 
 void set_cancel() {
-    return;
+    open_pin_screen(is_authorised() ? PinMode::MODE_UNLOCKED : PinMode::MODE_UNLOCK);
 }
 
 void open_change_pin() {

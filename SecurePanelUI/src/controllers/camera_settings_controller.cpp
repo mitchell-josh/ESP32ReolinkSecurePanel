@@ -1,6 +1,7 @@
 #include "camera_settings_controller.h"
 #include "camera_select_controller.h"
 #include "error_controller.h"
+#include "pin_controller.h"
 #include "api/auth_handler.h"
 #include "api/api_actions.h"
 #include "api/secure_panel_api.h"
@@ -21,6 +22,8 @@ static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
 
 extern AlarmScheme alarmSchemeController;
+
+void go_back();
 
 void submit_settings() {
     cameraSettingsActiveWorkflow.onSuccess = []() {
@@ -88,8 +91,35 @@ static void camera_settings_btn_event_handler(lv_event_t * e) {
 
     if (code == LV_EVENT_CLICKED) {
         if (target == ui_BtnSettingsOkCS) submit_settings();
-        else if (target == ui_BtnSettingsCancelCS) open_camera_select_screen(currentAlarmScheme);
+        else if (target == ui_BtnSettingsCancelCS) go_back();
     }
+}
+
+void go_back() {
+    cameraSettingsActiveWorkflow.onSuccess = []() {
+        lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
+            open_camera_select_screen(currentAlarmScheme);
+            lv_timer_del(timer);
+        }, 200, NULL);
+    };
+
+    cameraSettingsActiveWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Failed to return. Retrying.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        loadingState = LoadingState::SUCCESS;
+        delay(50);
+    }, "Going Back...");
 }
 
 void update_camera_settings_ui() {
