@@ -208,7 +208,7 @@ void finish_loading_sequence() {
 
     lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
         if (lv_scr_act() != ui_PinEntry) {
-            _ui_screen_change(&ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_PinEntry_screen_init);
+            lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
             update_pin_ui();
         } else {
             update_pin_ui();
@@ -226,6 +226,10 @@ void finish_loading_sequence() {
 }
 
 void monitor_pin_network_task() {
+    if (activeWorkflow.onSuccess == nullptr && activeWorkflow.onFailure == nullptr) {
+        return; 
+    }
+    
     LoadingState state = loadingState;
     if (state == LoadingState::IDLE || state == LoadingState::LOADING) return;
     
@@ -291,5 +295,5 @@ void open_pin_screen(PinMode pinMode) {
     currentMode = pinMode;
     pinBuffer = "";
     update_pin_ui();
-    _ui_screen_change(&ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_PinEntry_screen_init);
+    lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }

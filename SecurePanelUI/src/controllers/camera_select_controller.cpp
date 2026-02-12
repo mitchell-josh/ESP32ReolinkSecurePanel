@@ -1,108 +1,30 @@
 #include "camera_select_controller.h"
 #include "camera_settings_controller.h"
+#include "error_controller.h"
 #include "api/auth_handler.h"
+#include "api/api_actions.h"
 #include "api/secure_panel_api.h"
+#include "api/network_task.h"
 #include "ui/ui.h"
 
+CameraSelectWorkflow cameraSelectActiveWorkflow = { nullptr, nullptr };
+
+extern Channels channel;
+
 static AlarmSchemeEnum currentScheme = AlarmSchemeEnum::DISARMED;
+static Channel currentChannel;
 
 // Initialise array of 8 channels
-Channel channels[8] = {};
+std::array<Channel, 8> channels = {};
 
 lv_obj_t* cameraLabels[8];
 lv_obj_t* cameraButtons[8];
 
 BooleanResult get_result(const char* jsonString);
-
-bool create_channels() {
-    if (is_authorised()) {
-        AuthCredentials credentials = get_credentials();
-
-        RequestModel req;
-
-        req.endpoint = String(SECURE_PANEL_API_URI) + "channels/createchannels";
-
-        req.headers["X-Alarm-User"] = credentials.alarmUser;
-        req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-        String response = post_data(req);
-        
-        // 5. Deserialise response
-        BooleanResult result = get_result(response.c_str());
-
-        return result.succeeded;
-    }
-    return false;
-}
-
-bool update_channels() {
-    if (is_authorised()) {
-        AuthCredentials credentials = get_credentials();
-
-        RequestModel req;
-
-        req.endpoint = String(SECURE_PANEL_API_URI) + "channels/updatechannels";
-
-        req.headers["X-Alarm-User"] = credentials.alarmUser;
-        req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-        String response = post_data(req);
-        
-        // 5. Deserialise response
-        BooleanResult result = get_result(response.c_str());
-
-        return result.succeeded;
-    }
-    return false;
-}
+void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme);
 
 void get_channels() {
- if (is_authorised() && create_channels() && update_channels()) {
-        AuthCredentials credentials = get_credentials();
-        
-        RequestModel req;
-
-        // 1. The Base Endpoint (without the ? parameters)
-        // We use the macro from your platformio.ini
-        req.endpoint = String(SECURE_PANEL_API_URI) + "channels/getchannels";
-
-        // 3. Set Custom Headers
-        req.headers["X-Alarm-User"] = credentials.alarmUser;
-        req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-        // 4. Send the Request
-        String response = get_data(req);
-
-        JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, response);
-
-        if (error) {
-            Serial.print("JSON Parse failed: ");
-            Serial.println(error.c_str());
-            return;
-        }
-        
-        if (doc["succeeded"] == true) {
-            Serial.println("response succeeded...");
-            JsonArray arr = doc["value"].as<JsonArray>();
-            
-            // 3. Check if the array actually exists in the JSON
-            if (arr.isNull()) {
-                Serial.println("Error: 'value' array is null in JSON");
-                return; 
-            }
-            int count = 0;
-            for (JsonObject obj : arr) {
-                if (count < 8) {
-                    channels[count].channelId = obj["channelId"] | -1;
-                    channels[count].channelKey = obj["channelKey"] | -1;
-                    channels[count].channelEnabled = obj["channelEnabled"] | false;
-                    channels[count].channelName = obj["channelName"] | "";
-                    count++;
-                }
-            }
-        }
-    }
+    channels = channel.getChannels();
 }
 
 static void camera_btn_event_handler(lv_event_t * e) {
@@ -114,11 +36,28 @@ static void camera_btn_event_handler(lv_event_t * e) {
             if (target == cameraButtons[i]) {
                 Channel channel = channels[i];
                 if (channel.channelEnabled) {
-                    open_camera_settings_screen(channel, currentScheme);
+                    open_camera_settings(channel, currentScheme);
                 }
             }
         }
     }
+}
+
+void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
+    currentChannel = channel;
+
+    cameraSelectActiveWorkflow.onSuccess = []() {
+        lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
+            Serial.println("System ready. Transitioning to Settings screen.");
+            open_camera_settings_screen(currentChannel, currentScheme);
+            lv_timer_del(timer);
+      }, 200, NULL); 
+    };
+
+    run_with_loading([]() {
+        loadingState = LoadingState::SUCCESS;
+        delay(50);
+    }, "Loading...");
 }
 
 void update_camera_select_ui() {
@@ -145,7 +84,63 @@ void update_camera_select_ui() {
     }
 }
 
+void finish_camera_select_loading_sequence() {
+    // Add a static variable to act as a lock
+    static bool is_transitioning = false;
+    if (is_transitioning) return;
+    is_transitioning = true;
+
+    lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
+        update_camera_select_ui();
+
+        cameraSelectActiveWorkflow.onSuccess = nullptr;
+        cameraSelectActiveWorkflow.onFailure = nullptr;
+        
+        // Reset the lock
+        bool * lock = (bool*)timer->user_data;
+        *lock = false;
+
+        lv_timer_del(timer); 
+    }, 100, &is_transitioning); // Increased to 100ms for extra safety
+}
+
 void monitor_camera_select_network_task() {
+    if (cameraSelectActiveWorkflow.onSuccess == nullptr && cameraSelectActiveWorkflow.onFailure == nullptr) {
+        return; 
+    }
+
+    LoadingState state = loadingState;
+    if (state == LoadingState::IDLE || state == LoadingState::LOADING) return;
+    
+    loadingState = LoadingState::IDLE; // Reset immediately
+    delay(50); // Memory sync buffer
+
+    // Use a timer for BOTH Success and Failure to protect UI pointers
+    lv_timer_create([](lv_timer_t * t) {
+        LoadingState finishedState = (LoadingState)(uintptr_t)t->user_data;
+
+        if (finishedState == LoadingState::SUCCESS) {
+            if (cameraSelectActiveWorkflow.onSuccess) cameraSelectActiveWorkflow.onSuccess();
+            finish_camera_select_loading_sequence(); // Handles transition back to Keypad
+        } 
+        else {
+            if (cameraSelectActiveWorkflow.onFailure) {
+                // Capture the callback and null it IMMEDIATELY 
+                // to prevent double-execution
+                auto failCb = cameraSelectActiveWorkflow.onFailure;
+                cameraSelectActiveWorkflow.onFailure = nullptr; 
+                
+                failCb(); 
+                finish_camera_select_loading_sequence();
+            } else {
+                open_error_screen("Connection Error", nullptr);
+            }
+        }
+
+        cameraSelectActiveWorkflow.onSuccess = nullptr;
+        cameraSelectActiveWorkflow.onFailure = nullptr;
+        lv_timer_del(t);
+    }, 100, (void*)(uintptr_t)state);
 }
 
 void init_camera_select_controller() {
@@ -167,5 +162,5 @@ void open_camera_select_screen(AlarmSchemeEnum alarmScheme) {
     currentScheme = alarmScheme;
     get_channels();
     update_camera_select_ui();
-    _ui_screen_change(&ui_CameraSelect, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_CameraSelect_screen_init);
+    lv_scr_load_anim(ui_CameraSelect, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }

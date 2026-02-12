@@ -40,19 +40,4 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
-
-    [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpGet]
-    public async Task<IActionResult> GetAlarmSchemeTypes()
-    {
-        try
-        {
-            var result = await alarmSchemeService.GetAlarmSchemeTypes();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
 }

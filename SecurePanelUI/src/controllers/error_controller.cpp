@@ -21,7 +21,7 @@ void init_error_controller() {
 }
 
 void open_error_screen(String errorMessage, ErrorCallback onConfirm) {
-    _ui_screen_change(&ui_Error, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_Error_screen_init);
+    lv_scr_load_anim(ui_Error, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 
     // Create a static buffer that won't disappear when the function ends
     static char persistentMsg[64]; 

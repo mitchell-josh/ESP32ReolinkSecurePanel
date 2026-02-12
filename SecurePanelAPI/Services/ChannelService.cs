@@ -14,6 +14,16 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
 {
     public async Task<AlarmResult<List<ChannelDto>>> GetChannels()
     {
+        if (!(await this.CreateChannels()).Succeeded)
+        {
+            return AlarmResult<List<ChannelDto>>.Failure("Unable to create channels.");
+        }
+
+        if (!(await this.UpdateChannels()).Succeeded)
+        {
+            return AlarmResult<List<ChannelDto>>.Failure("Unable to update channels.");
+        }
+        
         var channels = await db.AlarmChannels
             .Select(c => new ChannelDto
             {

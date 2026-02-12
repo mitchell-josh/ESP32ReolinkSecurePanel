@@ -22,7 +22,7 @@ public class AlarmSchemeDto
 
     [JsonPropertyName("schedule")]
     public AlarmScheduleDto? Schedule { get; set; }
-
+    
     public bool Validate() =>
         this.AlarmSchemeId.HasValue
         && this.AlarmChannelId.HasValue

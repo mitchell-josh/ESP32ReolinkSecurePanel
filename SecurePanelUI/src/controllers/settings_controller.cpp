@@ -81,5 +81,5 @@ void init_settings_controller() {
 }
 
 void open_settings_screen() {
-    _ui_screen_change(&ui_SettingsLanding, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_SettingsLanding_screen_init);
+    lv_scr_load_anim(ui_SettingsLanding, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }

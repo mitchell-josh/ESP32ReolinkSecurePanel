@@ -1,7 +1,15 @@
 #include "camera_settings_controller.h"
-#include "api/secure_panel_api.h"
+#include "camera_select_controller.h"
+#include "error_controller.h"
 #include "api/auth_handler.h"
+#include "api/api_actions.h"
+#include "api/secure_panel_api.h"
+#include "api/network_task.h"
 #include "ui/ui.h"
+
+#include <array>
+
+CameraSettingsWorkflow cameraSettingsActiveWorkflow = { nullptr, nullptr };
 
 enum DropdownValues {
     DROPDOWN_ENABLED,
@@ -11,158 +19,23 @@ enum DropdownValues {
 static Channel currentChannel;
 static AlarmSchemeEnum currentAlarmScheme;
 static AlarmSettingsScheme settingsScheme;
-static AlarmSchemeType alarmSchemeTypes[3] = {};
 
-AlarmSchemeEnum string_to_alarm_enum(const char* text) {
-    if (strcasecmp(text, "Disarmed") == 0) return AlarmSchemeEnum::DISARMED;
-    else if (strcasecmp(text, "FullAlarm") == 0) return AlarmSchemeEnum::FULL_ALARM;
-    else if (strcasecmp(text, "PartialAlarm") == 0) return AlarmSchemeEnum::PARTIAL_ALARM;
-}
-
-AlarmSchemeType get_alarm_scheme_type() {
-    for (int i = 0; i < 3; i++) {
-        if (string_to_alarm_enum(alarmSchemeTypes[i].key.c_str()) == currentAlarmScheme) {
-            return alarmSchemeTypes[i];
-        }
-    }
-    throw;
-}
+extern AlarmScheme alarmScheme;
 
 void submit_settings() {
-    AlarmSchemeType alarmSchemeType = get_alarm_scheme_type();
-
-    settingsScheme.alarmSchemeTypeId = alarmSchemeType.alarmSchemeTypeId;
     settingsScheme.alarmChannelId = currentChannel.channelId;
-
-    if (is_authorised()) {
-        AuthCredentials credentials = get_credentials();
-
-        RequestModel req;
-
-        req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/SaveAlarmScheme";
-
-        // 3. Set Custom Headers
-        req.headers["X-Alarm-User"] = credentials.alarmUser;
-        req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-        JsonDocument doc;
-        doc["alarmSchemeId"] = settingsScheme.alarmSchemeId;
-        doc["alarmChannelId"] = settingsScheme.alarmChannelId;
-        doc["alarmSchemeTypeId"] = settingsScheme.alarmSchemeTypeId;
-        doc["enabled"] = settingsScheme.enabled;
-        doc["pushEnabled"] = settingsScheme.pushEnabled;
-        doc["schedule"]["otherEnabled"] = settingsScheme.schedule.otherEnabled;
-        doc["schedule"]["peopleEnabled"] = settingsScheme.schedule.peopleEnabled;
-        doc["schedule"]["petsEnabled"] = settingsScheme.schedule.petsEnabled;
-        doc["schedule"]["vehicleEnabled"] = settingsScheme.schedule.vehicleEnabled;
-
-        req.body = doc;
-
-        String response = post_data(req);
-    }
+    alarmScheme.saveAlarmScheme(settingsScheme);
 }
 
 void update_current_alarm_scheme() {
-    if (is_authorised()) {
-        AuthCredentials credentials = get_credentials();
-        {
-            AlarmSchemeType alarmSchemeType = get_alarm_scheme_type();
+    Serial.println("Getting alarm scheme...");
+    // Directly assign the result of the API call to the global settingsScheme
+    // This avoids creating a second 'temporary' copy on the stack
+    settingsScheme = alarmScheme.getAlarmScheme(
+        currentChannel.channelId, 
+        currentAlarmScheme);
 
-            RequestModel req;
-
-            // 1. The Base Endpoint (without the ? parameters)
-            // We use the macro from your platformio.ini
-            req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/GetAlarmScheme";
-
-            // 3. Set Custom Headers
-            req.headers["X-Alarm-User"] = credentials.alarmUser;
-            req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-            Serial.println("Getting alarm scheme");
-
-            // 4. Set Custom body
-            JsonDocument body;
-            body["ChannelId"] = currentChannel.channelId;
-            body["AlarmSchemeTypeId"] = alarmSchemeType.alarmSchemeTypeId;
-
-            req.body = body;
-
-            // 5. Send the request
-            String response = post_data(req);
-
-            Serial.println(response);
-
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, response);
-
-            if (error) {
-                Serial.print("JSON Parse failed: ");
-                Serial.println(error.c_str());
-                return;
-            }
-
-            if (doc["succeeded"] == true) {
-                settingsScheme.alarmSchemeId = doc["value"]["alarmSchemeId"];
-                settingsScheme.alarmChannelId = doc["value"]["alarmChannelId"];
-                settingsScheme.alarmSchemeTypeId = doc["value"]["alarmSchemeTypeId"];
-                settingsScheme.enabled = doc["value"]["enabled"] | false;
-                settingsScheme.pushEnabled = doc["value"]["pushEnabled"] | false;
-                settingsScheme.schedule.otherEnabled = doc["value"]["schedule"]["otherEnabled"] | false;
-                settingsScheme.schedule.peopleEnabled = doc["value"]["schedule"]["peopleEnabled"] | false;
-                settingsScheme.schedule.petsEnabled = doc["value"]["schedule"]["petsEnabled"] | false;
-                settingsScheme.schedule.vehicleEnabled = doc["value"]["schedule"]["vehicleEnabled"] | false;
-            }
-        }
-    }
-}
-
-static void update_alarm_scheme_types() {
-    if (is_authorised()) {
-        AuthCredentials credentials = get_credentials(); 
-        {
-            RequestModel req;
-
-            // 1. The Base Endpoint (without the ? parameters)
-            // We use the macro from your platformio.ini
-            req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/getalarmschemetypes";
-
-            // 3. Set Custom Headers
-            req.headers["X-Alarm-User"] = credentials.alarmUser;
-            req.headers["X-Alarm-Code"] = credentials.alarmCode;
-
-            // 4. Send the Request
-            String response = get_data(req);
-
-            Serial.println(response);
-
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, response);
-
-            if (error) {
-                Serial.print("JSON Parse failed: ");
-                Serial.println(error.c_str());
-                return;
-            }
-            
-            if (doc["succeeded"] == true) {
-                JsonArray arr = doc["value"].as<JsonArray>();
-                
-                // 3. Check if the array actually exists in the JSON
-                if (arr.isNull()) {
-                    Serial.println("Error: 'value' array is null in JSON");
-                    return; 
-                }
-                int count = 0;
-                for (JsonObject obj : arr) {
-                    if (count < 3) {
-                        alarmSchemeTypes[count].alarmSchemeTypeId = obj["alarmSchemeTypeId"] | -1;
-                        alarmSchemeTypes[count].key = obj["key"] | "";
-                        count++;
-                    }
-                }
-            }
-        }
-    }
+    Serial.println("Finishing update current alarm scheme");
 }
 
 bool parse_dropdown(lv_event_t * e) {
@@ -201,15 +74,104 @@ static void camera_settings_btn_event_handler(lv_event_t * e) {
 }
 
 void update_camera_settings_ui() {
+    Serial.println("Updating camera settings UI...");
+
+    if (ui_LblCameraName == nullptr) return;
+    if (ui_DropdownEnabled == nullptr) return;
+    if (ui_DropdownCarsEnabled == nullptr) return;
+    if (ui_DropdownOtherEnabled == nullptr) return;
+    if (ui_DropdownPeopleEnabled == nullptr) return;
+    if (ui_DropdownPetsEnabled == nullptr) return;
+
     if (currentChannel.channelName.length() > 0) {
         lv_label_set_text(ui_LblCameraName, currentChannel.channelName.c_str());
     }
+
+    JsonDocument doc;
+    doc["alarmSchemeId"] = settingsScheme.alarmSchemeId;
+    doc["alarmChannelId"] = settingsScheme.alarmChannelId;
+    doc["alarmSchemeTypeId"] = settingsScheme.alarmSchemeTypeId;
+    doc["enabled"] = settingsScheme.enabled;
+    doc["pushEnabled"] = settingsScheme.pushEnabled;
+    doc["schedule"]["otherEnabled"] = settingsScheme.schedule.otherEnabled;
+    doc["schedule"]["peopleEnabled"] = settingsScheme.schedule.peopleEnabled;
+    doc["schedule"]["petsEnabled"] = settingsScheme.schedule.petsEnabled;
+    doc["schedule"]["vehicleEnabled"] = settingsScheme.schedule.vehicleEnabled;        
+
+    String output;
+    serializeJson(doc, output);
+
+    Serial.println(output);
 
     lv_dropdown_set_selected(ui_DropdownEnabled, settingsScheme.enabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownCarsEnabled, settingsScheme.schedule.vehicleEnabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownOtherEnabled, settingsScheme.schedule.otherEnabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownPeopleEnabled, settingsScheme.schedule.peopleEnabled ? 0 : 1);
     lv_dropdown_set_selected(ui_DropdownPetsEnabled, settingsScheme.schedule.petsEnabled ? 0 : 1);
+}
+
+void finish_camera_settings_loading_sequence() {
+    // Add a static variable to act as a lock
+    static bool is_transitioning = false;
+    if (is_transitioning) return;
+    is_transitioning = true;
+
+    lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
+        if (lv_scr_act() != ui_CameraSettings) {
+            lv_scr_load_anim(ui_CameraSettings, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+            update_camera_settings_ui();
+        } else {
+            update_camera_settings_ui();
+        }
+
+        cameraSettingsActiveWorkflow.onSuccess = nullptr;
+        cameraSettingsActiveWorkflow.onFailure = nullptr;
+        
+        // Reset the lock
+        bool * lock = (bool*)timer->user_data;
+        *lock = false;
+
+        lv_timer_del(timer); 
+    }, 100, &is_transitioning); // Increased to 100ms for extra safety
+}
+
+void monitor_camera_settings_network_task() {
+    if (cameraSettingsActiveWorkflow.onSuccess == nullptr && cameraSettingsActiveWorkflow.onFailure == nullptr) {
+        return; 
+    }
+
+    LoadingState state = loadingState;
+    if (state == LoadingState::IDLE || state == LoadingState::LOADING) return;
+    
+    loadingState = LoadingState::IDLE; // Reset immediately
+    delay(50); // Memory sync buffer
+
+    // Use a timer for BOTH Success and Failure to protect UI pointers
+    lv_timer_create([](lv_timer_t * t) {
+        LoadingState finishedState = (LoadingState)(uintptr_t)t->user_data;
+
+        if (finishedState == LoadingState::SUCCESS) {
+            if (cameraSettingsActiveWorkflow.onSuccess) cameraSettingsActiveWorkflow.onSuccess();
+            finish_camera_settings_loading_sequence(); // Handles transition back to Keypad
+        } 
+        else {
+            if (cameraSettingsActiveWorkflow.onFailure) {
+                // Capture the callback and null it IMMEDIATELY 
+                // to prevent double-execution
+                auto failCb = cameraSettingsActiveWorkflow.onFailure;
+                cameraSettingsActiveWorkflow.onFailure = nullptr; 
+                
+                failCb(); 
+                finish_camera_settings_loading_sequence();
+            } else {
+                open_error_screen("Connection Error", nullptr);
+            }
+        }
+
+        cameraSettingsActiveWorkflow.onSuccess = nullptr;
+        cameraSettingsActiveWorkflow.onFailure = nullptr;
+        lv_timer_del(t);
+    }, 100, (void*)(uintptr_t)state);
 }
 
 void init_camera_settings_controller() {
@@ -225,8 +187,7 @@ void init_camera_settings_controller() {
 void open_camera_settings_screen(Channel channel, AlarmSchemeEnum alarmScheme) {
     currentChannel = channel;
     currentAlarmScheme = alarmScheme;
-    update_alarm_scheme_types();
     update_current_alarm_scheme();
     update_camera_settings_ui();
-    _ui_screen_change(&ui_CameraSettings, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_CameraSettings_screen_init);
+    lv_scr_load_anim(ui_CameraSettings, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }

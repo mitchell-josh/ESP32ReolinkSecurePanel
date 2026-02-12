@@ -21,7 +21,7 @@ public class AudioAlarmService(
     public async Task<AlarmResult<bool>> UpdateAudioAlarm(AlarmSchemeQuery query)
     {
         // Get local scheme data
-        var scheme = this.GetScheme(query);
+        var scheme = await this.GetScheme(query);
         if (scheme == null)
         {
             return AlarmResult<bool>.Failure("Scheme not found.");
@@ -60,16 +60,21 @@ public class AudioAlarmService(
         };
     }
 
-    private AlarmScheme? GetScheme(AlarmSchemeQuery query)
-        => this.GetChannel(query.ChannelId)
+    private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
+    { 
+        string? alarmSchemeType = query.AlarmSchemeType!.ToString();
+        return (await this.GetChannel(query.ChannelId!.Value))
             ?.AlarmSchemes
-            ?.Where(s => s.AlarmSchemeTypeId == query.AlarmSchemeTypeId)
-            ?.OrderByDescending(s => s.DateCreated).FirstOrDefault();
+            ?.Where(s => s.AlarmSchemeType!.Key == alarmSchemeType)
+            ?.OrderByDescending(s => s.DateCreated)
+            ?.FirstOrDefault();
+    }
     
-    private AlarmChannel? GetChannel(int? channelId)
-        => db.AlarmChannels
+    private async Task<AlarmChannel?> GetChannel(int channelId)
+        => await db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
-            .SingleOrDefault(c => c.AlarmChannelId == channelId);
-
+            .Include(c => c.AlarmSchemes)
+            .ThenInclude(s => s.AlarmSchemeType)
+            .SingleOrDefaultAsync(c => c.AlarmChannelId == channelId);
 }

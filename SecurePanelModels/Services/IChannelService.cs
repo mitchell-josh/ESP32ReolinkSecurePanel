@@ -6,8 +6,4 @@ namespace SecurePanelModels.Services;
 public interface IChannelService
 {
     Task<AlarmResult<List<ChannelDto>>> GetChannels();
-
-    Task<AlarmResult<bool>> CreateChannels();
-
-    Task<AlarmResult<bool>> UpdateChannels();
 }

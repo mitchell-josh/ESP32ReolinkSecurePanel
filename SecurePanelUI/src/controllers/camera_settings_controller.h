@@ -5,29 +5,18 @@
 
 #include <Arduino.h>
 
-struct AlarmSchemeType {
-    int alarmSchemeTypeId;
-    String key;
+typedef void (*CameraSettingsCallback)();
+
+struct CameraSettingsWorkflow {
+    CameraSettingsCallback onSuccess;
+    CameraSettingsCallback onFailure;
 };
 
-struct AlarmSettingsSchedule {
-    bool peopleEnabled;
-    bool vehicleEnabled;
-    bool petsEnabled;
-    bool otherEnabled;
-};
-
-struct AlarmSettingsScheme {
-    int alarmSchemeId;
-    int alarmChannelId;
-    int alarmSchemeTypeId;
-    bool enabled;
-    bool pushEnabled;
-    AlarmSettingsSchedule schedule;
-};
 
 void init_camera_settings_controller();
 
 void open_camera_settings_screen(Channel channel, AlarmSchemeEnum alarmScheme);
+
+void monitor_camera_select_network_task();
 
 #endif // CAMERA_SETTINGS_CONTROLLER_H

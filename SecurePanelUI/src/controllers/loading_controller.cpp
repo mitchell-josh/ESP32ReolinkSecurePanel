@@ -10,5 +10,5 @@ void init_loading_screen() {
 
 void open_loading_screen(const char* loadingText) {
     set_loading_text(loadingText);
-    _ui_screen_change(&ui_Loading, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, &ui_Loading_screen_init);
+    lv_scr_load_anim(ui_Loading, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
 }

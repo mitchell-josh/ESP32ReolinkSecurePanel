@@ -24,34 +24,4 @@ public class ChannelsController(IChannelService channelService) : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
-
-    [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpPost]
-    public async Task<IActionResult> CreateChannels()
-    {
-        try
-        {
-            var result = await channelService.CreateChannels();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-
-    [Authorize(Policy = Consts.AlarmCodePolicy)]
-    [HttpPost]
-    public async Task<IActionResult> UpdateChannels()
-    {
-        try
-        {
-            var result = await channelService.UpdateChannels();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
 }
