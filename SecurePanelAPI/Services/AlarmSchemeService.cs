@@ -9,7 +9,11 @@ using SecurePanelModels.Services;
 
 namespace SecurePanelAPI.Services;
 
-public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
+public class AlarmSchemeService(
+    SecurePanelDbContext db,
+    IAudioAlarmService audioAlarmService,
+    IBuzzerAlarmService buzzerAlarmService,
+    IPushService pushService) : IAlarmSchemeService
 {
     public async Task<AlarmResult<AlarmSchemeDto>> GetAlarmScheme(AlarmSchemeQuery query)
     {
@@ -58,6 +62,33 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
         return AlarmResult<List<AlarmSchemeTypeDto>>.Success(alarmSchemeTypes);
     }
 
+    public async Task<AlarmResult<bool>> SetAlarm(AlarmSchemeTypes alarmSchemeType)
+    {
+        var schemes = await this.GetSchemes(alarmSchemeType) ?? [];
+
+        bool success = true;
+        
+        foreach (var scheme in schemes)
+        {
+            var audioAlarmResult = await audioAlarmService.UpdateAudioAlarm(this.GetAlarmSchemeQuery(scheme));
+            var buzzerAlarmResult = await buzzerAlarmService.UpdateBuzzerAlarm(this.GetAlarmSchemeQuery(scheme));
+            var pushResult = await pushService.UpdatePush(this.GetAlarmSchemeQuery(scheme));
+            success &= audioAlarmResult.Succeeded &&  buzzerAlarmResult.Succeeded && pushResult.Succeeded;
+        }
+        
+        return success ?
+            AlarmResult<bool>.Success(true) :
+            AlarmResult<bool>.Failure("Failed to set alarm");
+    }
+
+    private AlarmSchemeQuery GetAlarmSchemeQuery(AlarmScheme scheme)
+        => new AlarmSchemeQuery()
+        {
+            AlarmSchemeId = scheme.AlarmSchemeId,
+            ChannelId = scheme.AlarmChannelId,
+            AlarmSchemeType = Enum.Parse<AlarmSchemeTypes>(scheme.AlarmSchemeType!.Key),
+        };
+    
     private AlarmSchemeDto GetAlarmSchemeDto(AlarmScheme scheme)
     {
         return new AlarmSchemeDto
@@ -105,6 +136,18 @@ public class AlarmSchemeService(SecurePanelDbContext db) : IAlarmSchemeService
             .SingleAsync(t => t.Key == alarmSchemeType);
     }
 
+    private async Task<AlarmScheme[]> GetSchemes(AlarmSchemeTypes alarmSchemeType)
+    {
+        string? type = alarmSchemeType.ToString();
+        return await db.AlarmSchemes
+            .Include(s => s.AlarmSchemeType)
+            .Where(s => s.AlarmSchemeType!.Key == type)
+            .OrderByDescending(s => s.DateCreated)
+            .GroupBy(t => t.AlarmChannelId)
+            .Select(g => g.First())
+            .ToArrayAsync();
+    }
+    
     private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
     { 
         string? alarmSchemeType = query.AlarmSchemeType!.ToString();

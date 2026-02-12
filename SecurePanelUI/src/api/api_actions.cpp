@@ -115,6 +115,30 @@ BooleanResult AlarmScheme::saveAlarmScheme(AlarmSettingsScheme settingsScheme) {
     return get_result(response.c_str());
 }
 
+BooleanResult AlarmScheme::setAlarm(AlarmSchemeEnum alarmSchemeType) {
+    AuthCredentials credentials = get_credentials();
+    RequestModel req;
+    req.endpoint = String(SECURE_PANEL_API_URI) + "alarmscheme/SetAlarm";
+    req.query["alarmSchemeType"] = alarmSchemeType;
+    req.headers["X-Alarm-User"] = credentials.alarmUser;
+    req.headers["X-Alarm-Code"] = credentials.alarmCode;
+
+    BooleanResult result;
+    result.succeeded = false;
+    result.value = false;
+
+    String response = post_data(req);
+    JsonDocument resultDoc;
+    DeserializationError error = deserializeJson(resultDoc, response);
+    if (error) {
+        Serial.print("JSON Parse failed: ");
+        Serial.println(error.c_str());
+        return result;
+    }
+
+    return get_result(response.c_str());
+}
+
 std::array<Channel, 8> Channels::getChannels() {
     AuthCredentials credentials = get_credentials(); 
     RequestModel request;

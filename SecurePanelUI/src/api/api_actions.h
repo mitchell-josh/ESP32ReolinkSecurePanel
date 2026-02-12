@@ -42,14 +42,9 @@ class AlarmScheme {
 
         AlarmSettingsScheme getAlarmScheme(int channelId, AlarmSchemeEnum alarmScheme);
         BooleanResult saveAlarmScheme(AlarmSettingsScheme settingsScheme);
+        BooleanResult setAlarm(AlarmSchemeEnum alarmSchemeType);
 };
 
-class AudioAlarm {
-    public:
-        AudioAlarm();
-
-        void updateAudioAlarm();
-};
 
 class Auth {
     public:
@@ -60,25 +55,11 @@ class Auth {
         BooleanResult checkAlarmCode(AuthCredentials credentials);
 };
 
-class BuzzerAlarm {
-    public:
-        BuzzerAlarm();
-
-        void updateBuzzerAlarm();
-};
-
 class Channels {
     public:
         Channels();
 
         std::array<Channel, 8> getChannels();
-};
-
-class Push {
-    public:
-        Push();
-
-        void updatePush();
 };
 
 #endif // API_ACTIONS_H

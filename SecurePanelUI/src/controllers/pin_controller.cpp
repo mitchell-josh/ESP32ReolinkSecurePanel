@@ -16,6 +16,7 @@ static String pinBuffer = "";
 static String confirmPinBuffer = "";
 
 extern Auth auth;
+extern AlarmScheme alarmSchemeController;
 
 namespace Texts {
     const char* const ENTER_PIN = "Enter PIN";
@@ -26,6 +27,7 @@ namespace Texts {
 
 void set_full_alarm();
 void set_partial_alarm();
+void set_disarmed();
 void open_settings();
 void change_pin();
 void unlock_pin();
@@ -79,6 +81,10 @@ void confirm_change_pin() {
         clear_authorised();
         pinBuffer = "";
         currentMode = PinMode::MODE_UNLOCK;
+        lv_timer_create([](lv_timer_t * retryTimer) {
+            lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+            lv_timer_del(retryTimer);
+        }, 50, NULL);
     };
 
     activeWorkflow.onFailure = []() {
@@ -107,11 +113,19 @@ void confirm_change_pin() {
 void on_unlock_success() {
     currentMode = PinMode::MODE_UNLOCKED;
     pinBuffer = "";
+    lv_timer_create([](lv_timer_t * retryTimer) {
+        lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+        lv_timer_del(retryTimer);
+    }, 50, NULL);
 }
 
 void on_auth_failure() {
     currentMode = PinMode::MODE_UNLOCK;
     pinBuffer = "";
+    lv_timer_create([](lv_timer_t * retryTimer) {
+        lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
+        lv_timer_del(retryTimer);
+    }, 50, NULL);
 }
 
 void unlock_pin() {
@@ -152,7 +166,7 @@ static void pin_btn_event_handler(lv_event_t * e) {
         else if (target == ui_BtnKeyPadA) set_full_alarm();
         else if (target == ui_BtnKeyPadB) set_partial_alarm();
         else if (target == ui_BtnKeyPadC) open_settings();
-        else if (target == ui_BtnKeyPadD) Serial.println("KeyPadD pressed");
+        else if (target == ui_BtnKeyPadD) set_disarmed();
 
         else if (target == ui_BtnKeyPadOk) submit_pin();
         else if (target == ui_BtnKeyPadCancel) pinBuffer = "";
@@ -163,9 +177,108 @@ static void pin_btn_event_handler(lv_event_t * e) {
 }
 
 void set_full_alarm() {
+    activeWorkflow.onSuccess = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Alarm Set.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    activeWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Failed to set alarm.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        BooleanResult result = alarmSchemeController.setAlarm(AlarmSchemeEnum::FULL_ALARM);
+        if (!result.succeeded) {
+            loadingState = LoadingState::ERROR;
+        }
+    }, "Setting Alarm...");
 }
 
 void set_partial_alarm() {
+        activeWorkflow.onSuccess = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Alarm Set.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    activeWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Failed to set alarm.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        BooleanResult result = alarmSchemeController.setAlarm(AlarmSchemeEnum::PARTIAL_ALARM);
+        if (!result.succeeded) {
+            loadingState = LoadingState::ERROR;
+        }
+    }, "Setting Alarm...");
+}
+
+void set_disarmed() {
+        activeWorkflow.onSuccess = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Alarm Set.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    activeWorkflow.onFailure = []() {
+        lv_timer_create([](lv_timer_t * t) {
+            open_error_screen("Failed to set alarm.", []() {
+                lv_timer_create([](lv_timer_t * retryTimer) {
+                    clear_authorised();
+                    open_pin_screen(PinMode::MODE_UNLOCK);
+                    lv_timer_del(retryTimer);
+                }, 50, NULL);
+            });
+            lv_timer_del(t);
+        }, 200, NULL);
+    };
+
+    run_with_loading([]() {
+        BooleanResult result = alarmSchemeController.setAlarm(AlarmSchemeEnum::DISARMED);
+        if (!result.succeeded) {
+            loadingState = LoadingState::ERROR;
+        }
+    }, "Setting Alarm...");
 }
 
 void open_settings() {
@@ -209,7 +322,6 @@ void finish_loading_sequence() {
 
     lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
         if (lv_scr_act() != ui_PinEntry) {
-            lv_scr_load_anim(ui_PinEntry, LV_SCR_LOAD_ANIM_FADE_ON, 200, 0, false);
             update_pin_ui();
         } else {
             update_pin_ui();

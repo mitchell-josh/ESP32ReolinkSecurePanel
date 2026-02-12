@@ -2,7 +2,7 @@
 
 String get_data(RequestModel& req) {
     HTTPClient http;
-    http.setConnectTimeout(3000); // 3 seconds to find the server
+    http.setConnectTimeout(10000); // 3 seconds to find the server
     
     // Append query params to URL
     String fullUrl = String(req.endpoint.c_str());
@@ -21,7 +21,7 @@ String get_data(RequestModel& req) {
     yield();
 
     http.begin(fullUrl);
-    http.setTimeout(5000); // Give it 5 seconds to respond
+    http.setTimeout(20000); // Give it 5 seconds to respond
     http.setReuse(false); // Disable connection reuse
     
     // Add Headers
@@ -45,7 +45,7 @@ String get_data(RequestModel& req) {
 
 String post_data(RequestModel& req) {
     HTTPClient http;
-    http.setConnectTimeout(3000); // 3 seconds to find the server
+    http.setConnectTimeout(10000); // 3 seconds to find the server
     
     // Append query params to URL
     String fullUrl = String(req.endpoint.c_str());
@@ -54,18 +54,20 @@ String post_data(RequestModel& req) {
         JsonObject params = req.query.as<JsonObject>();
         int count = 0;
         for (JsonPair p : params) {
-            fullUrl += String(p.key().c_str()) + "=" + p.value().as<const char*>();
+            String value = p.value().as<String>();
+            fullUrl += String(p.key().c_str()) + "=" + value;
             count++;
             if (count != params.size()) fullUrl += "&";
         }
     }
 
+    Serial.println(fullUrl);
     delay(100); 
     yield();
 
     // Initialize URL
     http.begin(fullUrl);
-    http.setTimeout(5000); // Give it 5 seconds to respond
+    http.setTimeout(20000); // Give it 5 seconds to respond
     http.setReuse(false); // Disable connection reuse
     http.addHeader("Connection", "close"); // Tell .NET to drop the socket immediately
     
