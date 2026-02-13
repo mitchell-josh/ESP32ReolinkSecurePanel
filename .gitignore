@@ -480,3 +480,16 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# SQLite database files
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# .NET build folders
+bin/
+obj/
+
+# Docker environment files
+.env

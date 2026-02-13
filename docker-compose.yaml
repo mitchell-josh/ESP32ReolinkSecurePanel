@@ -1,10 +1,8 @@
 services:
-  api:
+  secure-panel-api:
+    image: ghcr.io/mitchell-josh/secure-panel-api:latest
     container_name: secure-panel-api
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -12,8 +10,14 @@ services:
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/SecurePanel.db
       - Logging__LogLevel__ReolinkAPI=Debug
       - Logging__LogLevel__SecurePanelAPI=Debug
-      - Settings__Username=YOUR_USERNAME
-      - Settings__Password=YOUR_PASSWORD
-      - Settings__ReolinkURL=YOUR_REOLINKURL
+      - Settings__Username=${REOLINK_USERNAME}
+      - Settings__Password=${REOLINK_PASSWORD}
+      - Settings__ReolinkURL=${REOLINK_URL}
     volumes:
       - ./data:/app/data
+        
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup
