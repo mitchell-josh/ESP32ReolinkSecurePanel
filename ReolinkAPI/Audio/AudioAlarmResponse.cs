@@ -8,7 +8,8 @@ namespace ReolinkAPI.Audio;
 /// Inherits common request/response properties from <see cref="BaseRequest"/>.
 /// </summary>
 public record AudioAlarmResponse(
-    // Gets the container for the audio alarm configuration data.
-    AudioAlarmValue Value) : BaseRequest
+    /* Gets or sets the core audio alarm settings.
+     Maps to the "audio" key in the Reolink JSON response. */
+    [property: JsonPropertyName("Audio")] AudioAlarm? Audio)
 {
 }

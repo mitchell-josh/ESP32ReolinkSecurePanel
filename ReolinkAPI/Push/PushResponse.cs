@@ -7,6 +7,12 @@ namespace ReolinkAPI.Push;
 /// Represents the top-level response from a Reolink device when querying push notification settings.
 /// </summary>
 public record PushResponse(
-    /* Gets or sets the container for the push configuration.
-     This will be null if the device returns a non-zero error code. */
-    PushValue? Value) : BaseRequest;
+// Gets or sets the master enable switch for Push notifications. 1: Enabled, 0: Disabled.
+    int? Enable,
+
+    /* Gets or sets the detailed AI-aware schedule. This defines which types of detection (Person, Vehicle, etc.)
+     trigger pushes at specific times. */
+    AiSchedule? Schedule,
+
+    // Gets or sets whether the schedule is currently active.
+    int? ScheduleEnabled);
