@@ -6,30 +6,15 @@ namespace SecurePanelModels.DTOs;
 /// Represents a specific camera channel/lens in the security system.
 /// Bridges the gap between database records and physical hardware indices.
 /// </summary>
-public class ChannelDto
-{
-    /// <summary>
-    /// The unique primary key in your application database.
-    /// </summary>
-    [JsonPropertyName("channelId")]
-    public required int ChannelId { get; set; }
+public record ChannelDto(
+    // The unique primary key in the application database.
+    int ChannelId,
     
-    /// <summary>
-    /// A user-friendly name (e.g., "Front Door", "Back Yard").
-    /// </summary>
-    [JsonPropertyName("channelName")]
-    public required string ChannelName { get; set; }
+    // User friendly channel name (e.g. "Front Door")
+    string ChannelName,
     
-    /// <summary>
-    /// The physical channel index on the Reolink device (0-indexed).
-    /// Used in the 'channel' field of Reolink API requests.
-    /// </summary>
-    [JsonPropertyName("channelKey")]
-    public required int ChannelKey { get; set; }
+    // The physical channel index of the Reolink device (0-indexed). Used in the "channel" field of Reolink API requests.
+    int ChannelKey,
     
-    /// <summary>
-    /// Whether this channel is currently active in the security panel.
-    /// </summary>
-    [JsonPropertyName("channelEnabled")]
-    public required bool ChannelEnabled { get; set; }
-}
+    // Whether this channel is currently active in the security panel.
+    bool ChannelEnabled);

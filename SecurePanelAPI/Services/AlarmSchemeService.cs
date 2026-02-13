@@ -25,10 +25,10 @@ public class AlarmSchemeService(
         var scheme = await ApiHttpUtils.GetScheme(db, query);
         if (scheme != null)
         {
-            return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(scheme));
+            return AlarmResult<AlarmSchemeDto>.Success(GetAlarmSchemeDto(scheme));
         }
 
-        return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(await this.GetDefaultScheme(query)));
+        return AlarmResult<AlarmSchemeDto>.Success(GetAlarmSchemeDto(await this.GetDefaultScheme(query)));
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class AlarmSchemeService(
     /// </summary>
     public async Task<AlarmResult<bool>> SaveAlarmScheme(AlarmSchemeDto scheme)
     {
-        if (scheme.Validate())
+        if (ValidateScheme(scheme))
         {
             db.AlarmSchemes.Add(new AlarmScheme
             {
@@ -59,6 +59,26 @@ public class AlarmSchemeService(
         }
         return AlarmResult<bool>.Failure("Invalid alarm scheme");
     }
+    
+    /// <summary>
+    /// Validate alarm scheme
+    /// </summary>
+    private static bool ValidateScheme(AlarmSchemeDto scheme)
+        => scheme.AlarmSchemeId.HasValue
+           && scheme.AlarmChannelId.HasValue
+           && scheme.AlarmSchemeTypeId.HasValue
+           && scheme.Enabled.HasValue
+           && scheme.PushEnabled.HasValue
+           && (ValidateSchedule(scheme.Schedule));
+
+    /// <summary>
+    /// Validate alarm schedule
+    /// </summary>
+    private static bool ValidateSchedule(AlarmScheduleDto? schedule)
+        => (schedule?.OtherEnabled ?? false)
+           && (schedule?.PeopleEnabled ?? false)
+           && (schedule?.PetsEnabled ?? false)
+           && (schedule?.VehicleEnabled ?? false);
 
     /// <summary>
     /// Orchestrates the 'Global Arming' process. It fetches all configuration 
@@ -90,25 +110,19 @@ public class AlarmSchemeService(
             ChannelId = scheme.AlarmChannelId,
             AlarmSchemeType = Enum.Parse<AlarmSchemeTypes>(scheme.AlarmSchemeType!.Key),
         };
-    
-    private AlarmSchemeDto GetAlarmSchemeDto(AlarmScheme scheme)
-    {
-        return new AlarmSchemeDto
-        {
-            AlarmSchemeId = scheme.AlarmSchemeId,
-            AlarmChannelId = scheme.AlarmChannelId,
-            AlarmSchemeTypeId = scheme.AlarmSchemeTypeId,
-            Enabled = scheme.Enabled,
-            PushEnabled = scheme.PushEnabled,
-            Schedule = new AlarmScheduleDto
-            {
-                OtherEnabled = scheme.AlarmSchedule?.OtherEnabled ?? false,
-                PeopleEnabled = scheme.AlarmSchedule?.PeopleEnabled ?? false,
-                PetsEnabled = scheme?.AlarmSchedule?.PetsEnabled ?? false,
-                VehicleEnabled = scheme?.AlarmSchedule?.VehicleEnabled ?? false,
-            }
-        };
-    }
+
+    private static AlarmSchemeDto GetAlarmSchemeDto(AlarmScheme scheme)
+        => new AlarmSchemeDto(
+            AlarmSchemeId: scheme.AlarmSchemeId,
+            AlarmChannelId: scheme.AlarmChannelId,
+            AlarmSchemeTypeId: scheme.AlarmSchemeTypeId,
+            Enabled: scheme.Enabled,
+            PushEnabled: scheme.PushEnabled,
+            Schedule: new AlarmScheduleDto(
+                PeopleEnabled: scheme?.AlarmSchedule?.PeopleEnabled ?? false,
+                OtherEnabled: scheme?.AlarmSchedule?.OtherEnabled ?? false,
+                PetsEnabled: scheme?.AlarmSchedule?.PetsEnabled ?? false,
+                VehicleEnabled: scheme?.AlarmSchedule?.VehicleEnabled ?? false));
 
     private async Task<AlarmScheme> GetDefaultScheme(AlarmSchemeQuery query)
         => new()
