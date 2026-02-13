@@ -19,40 +19,52 @@ public class AlarmChannelSeeder
 
     private static async Task SeedAlarmChannels(DbContext db, ReolinkClient reolinkClient)
     {
-        // Fetch current hardware state from the NVR/Camera
         var channelStatuses = await GetChannels(reolinkClient);
-        
-        // Identify what we already know. We use 'Identifier' (Hardware Index) 
-        // rather than 'AlarmChannelId' (Database PK) to track identity.
-        var existingKeys = await db.Set<AlarmChannel>().Select(c => c.Identifier).ToListAsync();
+        var existingChannels = await db.Set<AlarmChannel>().ToListAsync();
 
-        // Only prepare to insert channels that don't exist in our DB yet.
-        var newChannels = channelStatuses
-            .Where(cs => !existingKeys.Contains(cs.Channel!.Value)) 
-            .Select(cs => new AlarmChannel
-            {
-                Identifier = cs.Channel!.Value, 
-                Name = cs.Name ?? string.Empty, 
-                Online = cs.Online == 1
-            })
-            .ToList();
+        bool hasChanges = false;
 
-        if (newChannels.Any())
+        foreach (var cs in channelStatuses.Where(x => x.Channel.HasValue))
         {
-            // Start a manual transaction to bypass the framework's "hanging" lock
+            var existing = existingChannels.FirstOrDefault(c => c.Identifier == cs.Channel.Value);
+        
+            System.Diagnostics.Debug.WriteLine($"[SEEDER] Seeding Alarm Channel: {cs.Channel} {cs.Name}");
+            
+            if (existing == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SEEDER] Adding missing Alarm Channel: {cs.Channel} {cs.Name}");
+                // NEW CHANNEL
+                db.Set<AlarmChannel>().Add(new AlarmChannel
+                {
+                    Identifier = cs.Channel.Value,
+                    Name = cs.Name ?? $"Channel {cs.Channel}",
+                    Online = cs.Online == 1
+                });
+                hasChanges = true;
+            }
+            else if (existing.Name != cs.Name || existing.Online != (cs.Online == 1))
+            {
+                System.Diagnostics.Debug.WriteLine($"[SEEDER] Updating Alarm Channel: {cs.Channel} {cs.Name}");
+                // UPDATE EXISTING
+                existing.Name = cs.Name ?? existing.Name;
+                existing.Online = cs.Online == 1;
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges)
+        {
             using var transaction = await db.Database.BeginTransactionAsync();
             try 
             {
-                db.Set<AlarmChannel>().AddRange(newChannels);
                 await db.SaveChangesAsync();
-                await transaction.CommitAsync(); // This forces SQLite to write the WAL file
-                Console.WriteLine($"[Seeder] Successfully committed {newChannels.Count} channels.");
+                await transaction.CommitAsync();
+                System.Diagnostics.Debug.WriteLine("[Seeder] Database synchronized with camera state.");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"[Seeder] Error saving channels: {ex.Message}");
-                throw;
+                System.Diagnostics.Debug.WriteLine($"[Seeder] Error: {ex.Message}");
             }
         }
     }
@@ -70,6 +82,6 @@ public class AlarmChannelSeeder
             return [];
         }
 
-        return result.Value?.Value?.Statuses?.Where(s => s.Channel.HasValue)?.ToList() ?? [];
+        return result.Value?.Statuses?.Where(s => s.Channel.HasValue)?.ToList() ?? [];
     }
 }

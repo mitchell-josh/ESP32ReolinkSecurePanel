@@ -58,8 +58,8 @@ public class ReolinkClient(HttpClient client)
         response.EnsureSuccessStatusCode();
         
         var rawJson = await response.Content.ReadAsStringAsync();
-
-        var result = JsonSerializer.Deserialize<List<ReolinkResult<T>>>(rawJson);
+        
+        var result = HttpUtils.DeserialiseSafe<List<ReolinkResult<T>>>(rawJson);
         
         return result!.First();
     }

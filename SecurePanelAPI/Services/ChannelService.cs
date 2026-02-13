@@ -58,7 +58,7 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
             return AlarmResult<bool>.Failure(response.ErrorMessage!);
         }
         
-        var reolinkStatuses = result?.Value?.Value?.Statuses
+        var reolinkStatuses = result?.Value?.Statuses
             ?.Where(s => s.Channel.HasValue)
             ?.ToList() ?? [];
 
@@ -104,7 +104,7 @@ public class ChannelService(ReolinkClient reolinkClient, SecurePanelDbContext db
             return AlarmResult<bool>.Failure(response.ErrorMessage!);
         }
 
-        var reolinkStatuses = result?.Value?.Value?.Statuses ?? [];
+        var reolinkStatuses = result?.Value?.Statuses ?? [];
         
         // Fetch db channels. No need for .ToList() yet, we can iterate the tracked entities
         var dbChannels = await db.AlarmChannels.ToListAsync();

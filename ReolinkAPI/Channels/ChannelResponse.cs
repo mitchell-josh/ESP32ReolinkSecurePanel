@@ -8,6 +8,8 @@ namespace ReolinkAPI.Channels;
 /// Inherits from <see cref="BaseRequest"/> to provide access to command execution status.
 /// </summary>
 public record ChannelResponse(
-    /* Gets or sets the container for the channel status data.
-     This property is only populated if the request was successful. */
-    ChannelValue? Value) : BaseRequest;
+    // Gets or sets the total number of channels reported by the device.
+    int? Count, 
+    
+    // Gets or sets the list of status details for each individual channel.
+    [property: JsonPropertyName("status")] List<ChannelStatuses>? Statuses);
