@@ -1,7 +1,6 @@
 services:
   secure-panel-api:
-    image: ghcr.io/mitchell-josh/secure-panel-api:latest
-    container_name: secure-panel-api
+    image: ghcr.io/mitchell-josh/esp32reolinksecurepanel:latest
     restart: unless-stopped
     ports:
       - "8080:8080"

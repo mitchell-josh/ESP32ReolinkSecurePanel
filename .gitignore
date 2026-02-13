@@ -488,8 +488,10 @@ data/
 *.db-shm
 
 # .NET build folders
-bin/
-obj/
+bin/**
+obj/**
+bin\\**
+obj\\**
 
 # Docker environment files
 .env
