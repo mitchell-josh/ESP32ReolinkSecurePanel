@@ -20,6 +20,12 @@ public static class HttpUtils
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
+    
+    /// <summary>
+    /// Deserialise with JsonSerializerOptions
+    /// </summary>
+    public static TEntity? DeserialiseSafe<TEntity>(string rawJson)
+        => JsonSerializer.Deserialize<TEntity>(rawJson, JsonSerialiserOptions);
 
     /// <summary>
     /// Extension method to send a JSON POST request using the library's standard serialization settings.

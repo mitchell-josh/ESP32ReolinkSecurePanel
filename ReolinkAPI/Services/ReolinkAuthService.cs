@@ -29,8 +29,8 @@ public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISe
         var rawJson = await response.Content.ReadAsStringAsync();
         
         // Unwrap the response array
-        var result = JsonSerializer.Deserialize<List<ReolinkAuthResponse>>(rawJson);
-
+        var result = HttpUtils.DeserialiseSafe<List<ReolinkAuthResponse>>(rawJson);
+        
         var newToken = result?[0]?.Value?.Token;
         
         // Add 30 second buffer to lease time
@@ -42,5 +42,5 @@ public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISe
     }
 
     private static ReolinkAuthRequest GetRequestPayload(string? username, string? password) =>
-        new(Param: new ReolinkAuthParam(User: new ReoLinkAuthUser(username, password)));
+        new(Param: new ReolinkAuthParam(User: new ReoLinkAuthUser("0", username, password)));
 }

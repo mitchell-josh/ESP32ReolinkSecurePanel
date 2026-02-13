@@ -9,4 +9,4 @@ namespace ReolinkAPI.Auth;
 /// </summary>
 public record ReolinkAuthRequest(
     // Gets or sets the authentication parameters, which wrap the user credentials.
-    ReolinkAuthParam? Param) : BaseRequest("Login");
+    ReolinkAuthParam? Param) : BaseRequest("Login", 0);
