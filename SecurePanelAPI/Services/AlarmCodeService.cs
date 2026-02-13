@@ -14,20 +14,20 @@ namespace SecurePanelAPI.Services;
 public class AlarmCodeService(SecurePanelDbContext db) : IAlarmCodeService
 {
     // The PasswordHasher is thread-safe and provides salt generation and hashing out of the box.
-    private readonly IPasswordHasher<AlarmUser> passwordHasher = new PasswordHasher<AlarmUser>();
+    private readonly IPasswordHasher<AlarmUser> _passwordHasher = new PasswordHasher<AlarmUser>();
 
     /// <summary>
     /// Generates a salted hash for a new PIN.
     /// </summary>
     public string HashAlarmCode(AlarmUser alarmUser, string alarmCode)
-        => this.passwordHasher.HashPassword(alarmUser, alarmCode);
+        => this._passwordHasher.HashPassword(alarmUser, alarmCode);
 
     /// <summary>
     /// Low-level verification of a provided PIN against a stored hash.
     /// </summary>
     public bool CheckAlarmCode(AlarmUser alarmUser, string hashedCode, string providedCode)
     {
-        var result = this.passwordHasher.VerifyHashedPassword(alarmUser, hashedCode, providedCode);
+        var result = this._passwordHasher.VerifyHashedPassword(alarmUser, hashedCode, providedCode);
         return result == PasswordVerificationResult.Success;
     }
 
@@ -62,7 +62,7 @@ public class AlarmCodeService(SecurePanelDbContext db) : IAlarmCodeService
         }
         else
         {
-            var newHashedAlarmCode = this.passwordHasher.HashPassword(alarmUser, newAlarmCode);
+            var newHashedAlarmCode = this._passwordHasher.HashPassword(alarmUser, newAlarmCode);
             alarmUser.AlarmCodeHash = newHashedAlarmCode;
             await db.SaveChangesAsync();
             return AlarmResult<bool>.Success(true);

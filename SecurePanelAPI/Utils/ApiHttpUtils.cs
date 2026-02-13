@@ -10,6 +10,9 @@ namespace SecurePanelAPI.Utils;
 /// </summary>
 public static class ApiHttpUtils
 {
+    /// <summary>
+    /// Fetch <see cref="AlarmScheme"/> database model from internal SecurePanelAPI db.
+    /// </summary>
     public static async Task<AlarmScheme?> GetScheme(SecurePanelDbContext db, AlarmSchemeQuery query)
     { 
         string? alarmSchemeType = query.AlarmSchemeType!.ToString();
@@ -20,7 +23,10 @@ public static class ApiHttpUtils
             ?.FirstOrDefault();
     }
     
-    public static async Task<AlarmChannel?> GetChannel(SecurePanelDbContext db, int channelId)
+    /// <summary>
+    /// Fetch <see cref="Channel"/> database model from internal SecurePanelAPI db.
+    /// </summary>
+    private static async Task<AlarmChannel?> GetChannel(SecurePanelDbContext db, int channelId)
         => await db.AlarmChannels
             .Include(c => c.AlarmSchemes)
             .ThenInclude(s => s.AlarmSchedule)
