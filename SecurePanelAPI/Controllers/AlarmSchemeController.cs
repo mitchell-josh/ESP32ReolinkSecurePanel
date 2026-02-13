@@ -13,7 +13,7 @@ namespace SecurePanelAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : ControllerBase
+public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : BaseController
 {
     /// <summary>
     /// Retrieves specific alarm configurations (e.g., Get 'Stay' mode settings for 'Front Door').
@@ -21,36 +21,16 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
     /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeQuery scheme)
-    {
-        try
-        {
-            var result = await alarmSchemeService.GetAlarmScheme(scheme);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
-    
+    public async Task<IActionResult> GetAlarmScheme([FromBody] AlarmSchemeQuery scheme) 
+        => await this.ExecuteAsync(async () => await alarmSchemeService.GetAlarmScheme(scheme));
+
     /// <summary>
     /// Creates a new alarm configuration profile.
     /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> SaveAlarmScheme([FromBody] AlarmSchemeDto scheme)
-    {
-        try
-        {
-            var result = await alarmSchemeService.SaveAlarmScheme(scheme);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+    public async Task<IActionResult> SaveAlarmScheme([FromBody] AlarmSchemeDto scheme) 
+        => await this.ExecuteAsync(async () => await alarmSchemeService.SaveAlarmScheme(scheme));
 
     /// <summary>
     /// The 'Global Command' endpoint. Changes the house mode (Away, Home, Disarmed)
@@ -58,21 +38,6 @@ public class AlarmSchemeController(IAlarmSchemeService alarmSchemeService) : Con
     /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> SetAlarm([FromQuery] AlarmSchemeTypes? alarmSchemeType)
-    {
-        if (!alarmSchemeType.HasValue)
-        {
-            return Ok(AlarmResult<bool>.Failure("AlarmSchemeType is missing from query parameters."));
-        }
-
-        try
-        {
-            var result = await alarmSchemeService.SetAlarm(alarmSchemeType.Value);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+    public async Task<IActionResult> SetAlarm([FromQuery] AlarmSchemeTypes? alarmSchemeType) => 
+        await this.ExecuteAsync(async () => await alarmSchemeService.SetAlarm(alarmSchemeType!.Value));
 }

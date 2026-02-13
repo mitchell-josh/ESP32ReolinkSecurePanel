@@ -11,7 +11,7 @@ namespace SecurePanelAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class ChannelsController(IChannelService channelService) : ControllerBase
+public class ChannelsController(IChannelService channelService) : BaseController
 {
     /// <summary>
     /// Retrieves a list of all discovered channels, including their names, 
@@ -19,16 +19,6 @@ public class ChannelsController(IChannelService channelService) : ControllerBase
     /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpGet]
-    public async Task<IActionResult> GetChannels()
-    {
-        try
-        {
-            var channels = await channelService.GetChannels();
-            return Ok(channels);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+    public async Task<IActionResult> GetChannels() 
+        => await this.ExecuteAsync(async () => await channelService.GetChannels());
 }

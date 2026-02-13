@@ -12,58 +12,28 @@ namespace SecurePanelAPI.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class AuthController(IAlarmCodeService alarmCodeService) : ControllerBase
+public class AuthController(IAlarmCodeService alarmCodeService) : BaseController
 {
     /// <summary>
     /// Simple heartbeat/smoke-test endpoint to verify the API is alive.
     /// </summary>
     [HttpGet]
-    public IActionResult Test()
-    {
-        return Ok(AlarmResult<bool>.Success(true));
-    }
-    
+    public IActionResult Test() => Ok(AlarmResult<bool>.Success(true));
+
     /// <summary>
     /// Updates the user's PIN. 
     /// Secured by the AlarmCodePolicy to ensure only an authenticated user can change their own code.
     /// </summary>
     [Authorize(Policy = Consts.AlarmCodePolicy)]
     [HttpPost]
-    public async Task<IActionResult> ChangeAlarmCode([FromQuery] string newAlarmCode)
-    {
-        try
-        {
-            var username = this.User.Identity?.Name;
-
-            if (string.IsNullOrWhiteSpace(this.User.Identity?.Name))
-            {
-                return Unauthorized();
-            }
-            
-            var result = await alarmCodeService.ChangeAlarmCode(this.User.Identity.Name, newAlarmCode);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+    public async Task<IActionResult> ChangeAlarmCode([FromQuery] string newAlarmCode) 
+        => await this.ExecuteAsync(async () => await alarmCodeService.ChangeAlarmCode(this.User!.Identity!.Name!, newAlarmCode));
 
     /// <summary>
     /// Validates a PIN. This is typically used by the frontend Keypad 
     /// to obtain a session token or verify access before showing the dashboard.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> CheckAlarmCode([FromQuery] string alarmCode)
-    {
-        try
-        {
-            var result = await alarmCodeService.CheckAlarmCode("Admin", alarmCode);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
-    }
+    public async Task<IActionResult> CheckAlarmCode([FromQuery] string alarmCode) 
+        => await this.ExecuteAsync(async () => await alarmCodeService.CheckAlarmCode("Admin", alarmCode));
 }
