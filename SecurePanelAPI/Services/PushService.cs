@@ -42,28 +42,18 @@ public class PushService(ReolinkClient reolinkClient, SecurePanelDbContext db) :
     /// types to 'PetsEnabled' or separate them by category.
     /// </summary>
     private static SetPushRequest GenerateSetPushRequest(AlarmScheme scheme)
-    {
-        return new SetPushRequest
-        {
-            Param = new SetPushParam
-            {
-                Push = new PushValue
-                {
-                    Enable = scheme.PushEnabled ? 1 : 0,
-                    ScheduleEnable = 1,
-                    Schedule = new AiSchedule
-                    {
-                        Channel = scheme.AlarmChannel!.Identifier,
-                        Table = new AiScheduleTable
-                        {
-                            AiDogCat = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiOther = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiPeople = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiVehicle = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                        }
-                    }
-                }
-            }
-        };
-    }
+        => new SetPushRequest(
+            Param: new SetPushParam(
+                Push: new PushValue(
+                    Enable: scheme.PushEnabled ? 1 : 0,
+                    ScheduleEnabled: 1,
+                    Schedule: new AiSchedule(
+                        Enable: null,
+                        Channel: scheme.AlarmChannel!.Identifier,
+                        Table: new AiScheduleTable(
+                            Enable: null,
+                            AiDogCat: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiOther: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiPeople: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiVehicle: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false))))));
 }

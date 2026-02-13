@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
 using ReolinkAPI.Audio;
 using ReolinkAPI.BuzzerAlarm;
@@ -40,29 +41,19 @@ public class BuzzerAlarmService(ReolinkClient reolinkClient, SecurePanelDbContex
     /// Constructs the JSON payload for the Reolink CGI API.
     /// Note: Ensure the detection types match the specific properties of the AlarmSchedule.
     /// </summary>
-    private SetBuzzerAlarmRequest GenerateSetBuzzerRequest(AlarmScheme scheme)
-    {
-        return new SetBuzzerAlarmRequest
-        {
-            Param = new SetBuzzerAlarmParam
-            {
-                Buzzer = new BuzzerAlarm
-                {
-                    Enable = scheme.Enabled ? 1 : 0,
-                    ScheduleEnabled = scheme.Enabled ? 1 : 0,
-                    Schedule = new AiSchedule
-                    {
-                        Channel = scheme.AlarmChannel!.Identifier,
-                        Table = new AiScheduleTable
-                        {
-                            AiDogCat = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiOther = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiPeople = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiVehicle = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                        }
-                    }
-                }
-            }
-        };
-    }
+    private static SetBuzzerAlarmRequest GenerateSetBuzzerRequest(AlarmScheme scheme)
+        => new(
+            Param: new SetBuzzerAlarmParam(
+                Buzzer: new BuzzerAlarm(
+                    Enable: scheme.Enabled ? 1 : 0,
+                    ScheduleEnabled: scheme.Enabled ? 1 : 0,
+                    Schedule: new AiSchedule(
+                        Enable: null,
+                        Channel: scheme.AlarmChannel!.Identifier,
+                        Table: new AiScheduleTable(
+                            Enable: null,
+                            AiDogCat: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiOther: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiPeople: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiVehicle: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false))))));
 }

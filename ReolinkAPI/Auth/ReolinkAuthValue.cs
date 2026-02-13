@@ -6,12 +6,7 @@ namespace ReolinkAPI.Auth;
 /// Represents the value container returned in a successful <see cref="ReolinkAuthResponse"/>.
 /// This class acts as a wrapper for the session token details.
 /// </summary>
-public class ReolinkAuthValue
-{
-    /// <summary>
-    /// Gets or sets the authentication token information.
-    /// Maps to the "Token" key in the Reolink login JSON response.
-    /// </summary>
-    [JsonPropertyName("Token")]
-    public ReolinkAuthToken? Token { get; set; }
-}
+public record ReolinkAuthValue(
+    /* Gets or sets the authentication token information.
+     Maps to the "Token" key in the Reolink login JSON response. */
+    [property: JsonPropertyName("Token")] ReolinkAuthToken? Token);

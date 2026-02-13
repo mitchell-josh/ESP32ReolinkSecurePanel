@@ -40,17 +40,7 @@ public class ReolinkAuthService(HttpClient client, IMemoryCache memoryCache, ISe
 
         return newToken?.Name!;
     }
-    
+
     private static ReolinkAuthRequest GetRequestPayload(string? username, string? password) =>
-        new()
-        {
-            Param = new ReolinkAuthParam
-            {
-                User = new ReoLinkAuthUser
-                {
-                    Username = username!,
-                    Password = password!
-                }
-            }
-        };
+        new(Param: new ReolinkAuthParam(User: new ReoLinkAuthUser(username, password)));
 }

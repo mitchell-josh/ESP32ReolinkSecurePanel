@@ -6,40 +6,18 @@ namespace ReolinkAPI.Shared;
 /// Represents the hourly activation grid for different AI detection types.
 /// Each string typically contains 168 characters ('1' or '0').
 /// </summary>
-public class AiScheduleTable
-{
-    /// <summary>
-    /// Gets or sets whether the table-based scheduling is enabled.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("enable")]
-    public int? Enable { get; set; }
-    
-    /// <summary>
-    /// Schedule for Pet (Dog/Cat) detection.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("AI_DOG_CAT")]
-    public string? AiDogCat { get; set; }
-    
-    /// <summary>
-    /// Schedule for generic "Other" motion detections.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("AI_OTHER")]
-    public string? AiOther { get; set; }
-    
-    /// <summary>
-    /// Schedule for Human/People detection.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("AI_PEOPLE")]
-    public string? AiPeople { get; set; }
-    
-    /// <summary>
-    /// Schedule for Vehicle detection.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    [JsonPropertyName("AI_VEHICLE")]
-    public string? AiVehicle { get; set; }
-}
+public record AiScheduleTable(
+    // Gets or sets whether the table-based schedule is enabled
+    int? Enable,
+
+    // Schedule for pet detection.
+    [property:JsonPropertyName("AI_DOG_CAT")] string? AiDogCat,
+
+    // Schedule for generic "other" motion detections.
+    [property: JsonPropertyName("AI_OTHER")] string? AiOther,
+
+    // Schedule for human/people detection
+    [property: JsonPropertyName("AI_PEOPLE")] string? AiPeople,
+
+    // Schedule for vehicle detection.
+    [property: JsonPropertyName("AI_VEHICLE")] string? AiVehicle);

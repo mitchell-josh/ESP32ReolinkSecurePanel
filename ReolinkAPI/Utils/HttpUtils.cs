@@ -1,5 +1,9 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using ReolinkAPI.Audio;
+using ReolinkAPI.BuzzerAlarm;
+using ReolinkAPI.Push;
 
 namespace ReolinkAPI.Utils;
 
@@ -8,9 +12,13 @@ namespace ReolinkAPI.Utils;
 /// </summary>
 public static class HttpUtils
 {
+    /// <summary>
+    /// Serialiser options
+    /// </summary>
     private static readonly JsonSerializerOptions JsonSerialiserOptions = new()
     {
-        PropertyNamingPolicy = null // This ensures it uses the exact names/attributes
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
     /// <summary>
@@ -33,4 +41,26 @@ public static class HttpUtils
     /// <param name="enabled">True for 168 '1's (Always On), False for 168 '0's (Always Off).</param>
     public static string GetSchedule(bool enabled)
         => string.Join(string.Empty, Enumerable.Repeat(enabled ? 1 : 0, 168));
+    
+    /// <summary>
+    /// Factory method to quickly generate a request payload for a specific camera channel.
+    /// </summary>
+    /// <param name="channel">The index of the camera channel (usually 0).</param>
+    /// <returns>A populated <see cref="GetAudioAlarmRequest"/> object.</returns>
+    public static GetAudioAlarmRequest CreateAudioAlarmRequestPayload(int channel) =>
+        new(Param: new GetAudioAlarmParam(channel));
+
+    /// <summary>
+    /// Factory method to generate a request for a specific camera channel.
+    /// </summary>
+    /// <param name="channel">The index of the camera channel (0 for most standalone cameras).</param>
+    /// <returns>A configured <see cref="GetBuzzerAlarmRequest"/> ready for serialisation.</returns>
+    public static GetBuzzerAlarmRequest CreateBuzzerAlarmRequestPayload(int channel) =>
+        new(Param: new BuzzerAlarmParam(channel));
+
+    /// <summary>
+    /// Factory method to generate a request for a specific camera channel.
+    /// </summary>
+    public static GetPushRequest CreatePushRequestPayload(int channel) =>
+        new(Param: new GetPushParam(channel));
 }

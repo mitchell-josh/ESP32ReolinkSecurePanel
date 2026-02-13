@@ -17,22 +17,34 @@ namespace ReolinkAPI.Clients;
 public class ReolinkClient(HttpClient client)
 {
     public async Task<ReolinkResult<ChannelResponse>> GetChannelStatus()
-        => await this.PostAsync<ChannelResponse>("api.cgi?cmd=GetChannelStatus", new ChannelRequest());
+        => await this.PostAsync<ChannelResponse>(
+            "api.cgi?cmd=GetChannelStatus", 
+            new ChannelRequest(new EmptyParam()));
 
     public async Task<ReolinkResult<BuzzerAlarmResponse>> GetBuzzerAlarm(int channel)
-        => await this.PostAsync<BuzzerAlarmResponse>("api.cgi?cmd=GetBuzzerAlarmV20", GetBuzzerAlarmRequest.CreatePayload(channel));
+        => await this.PostAsync<BuzzerAlarmResponse>(
+            "api.cgi?cmd=GetBuzzerAlarmV20", 
+            HttpUtils.CreateBuzzerAlarmRequestPayload(channel));
     
     public async Task<ReolinkResult<BuzzerAlarmResponse>> SetBuzzerAlarm(SetBuzzerAlarmRequest request)
-        => await this.PostAsync<BuzzerAlarmResponse>("api.cgi?cmd=SetBuzzerAlarmV20", request);
+        => await this.PostAsync<BuzzerAlarmResponse>(
+            "api.cgi?cmd=SetBuzzerAlarmV20", 
+            request);
     
     public async Task<ReolinkResult<AudioAlarmResponse>> GetAudioAlarm(int channel) 
-        => await this.PostAsync<AudioAlarmResponse>("api.cgi?cmd=GetAudioAlarmV20", GetAudioAlarmRequest.CreatePayload(channel));
+        => await this.PostAsync<AudioAlarmResponse>(
+            "api.cgi?cmd=GetAudioAlarmV20", 
+            HttpUtils.CreateAudioAlarmRequestPayload(channel));
 
     public async Task<ReolinkResult<AudioAlarmResponse>> SetAudioAlarm(SetAudioAlarmRequest request)
-        => await this.PostAsync<AudioAlarmResponse>("api.cgi?cmd=SetAudioAlarmV20", request);
+        => await this.PostAsync<AudioAlarmResponse>(
+            "api.cgi?cmd=SetAudioAlarmV20", 
+            request);
 
     public async Task<ReolinkResult<PushResponse>> SetPush(SetPushRequest request) 
-        => await this.PostAsync<PushResponse>("api.cgi?cmd=SetPushV20", request);
+        => await this.PostAsync<PushResponse>(
+            "api.cgi?cmd=SetPushV20", 
+            request);
 
     /// <summary>
     /// Sends a POST request to the camera, wrapping the payload in an array 

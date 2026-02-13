@@ -47,28 +47,19 @@ public class AudioAlarmService(
     /// Reolink requires a 168-character string of '1's and '0's for each detection type.
     /// </summary>
     private static SetAudioAlarmRequest GenerateSetAudioRequest(AlarmScheme scheme)
-    {
-        return new SetAudioAlarmRequest
-        {
-            Param = new SetAudioAlarmParam
-            {
-                Audio = new AudioAlarm
-                {
-                    Enable = scheme.Enabled ? 1 : 0,
-                    StopAlarm = 0,
-                    Schedule = new AiSchedule
-                    {
-                        Channel = scheme.AlarmChannel!.Identifier,
-                        Table = new AiScheduleTable
-                        {
-                            AiDogCat = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
-                            AiOther = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.OtherEnabled?? false),
-                            AiPeople = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PeopleEnabled ?? false),
-                            AiVehicle = HttpUtils.GetSchedule(scheme?.AlarmSchedule?.VehicleEnabled ?? false),
-                        }
-                    }
-                }
-            }
-        };
-    }
+        => new(
+            new SetAudioAlarmParam(
+                Channel: null,
+                Audio: new AudioAlarm(
+                    Enable:scheme.Enabled ? 1 : 0,
+                    StopAlarm: 0,
+                    Schedule: new AiSchedule(
+                        Enable: null,
+                        Channel: scheme.AlarmChannel!.Identifier,
+                        Table: new AiScheduleTable(
+                            Enable: null,
+                            AiDogCat: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PetsEnabled ?? false),
+                            AiOther: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.OtherEnabled ?? false),
+                            AiPeople: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.PeopleEnabled ?? false),
+                            AiVehicle: HttpUtils.GetSchedule(scheme?.AlarmSchedule?.VehicleEnabled ?? false))))));
 }
