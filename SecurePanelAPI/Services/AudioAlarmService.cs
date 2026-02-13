@@ -6,6 +6,7 @@ using ReolinkAPI.Clients;
 using ReolinkAPI.Handlers;
 using ReolinkAPI.Shared;
 using ReolinkAPI.Utils;
+using SecurePanelAPI.Utils;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.DTOs;
@@ -28,7 +29,7 @@ public class AudioAlarmService(
     public async Task<AlarmResult<bool>> UpdateAudioAlarm(AlarmSchemeQuery query)
     {
         // Get local scheme data
-        var scheme = await this.GetScheme(query);
+        var scheme = await ApiHttpUtils.GetScheme(db, query);
         if (scheme == null)
         {
             return AlarmResult<bool>.Failure("Scheme not found.");
@@ -70,22 +71,4 @@ public class AudioAlarmService(
             }
         };
     }
-
-    private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
-    { 
-        string? alarmSchemeType = query.AlarmSchemeType!.ToString();
-        return (await this.GetChannel(query.ChannelId!.Value))
-            ?.AlarmSchemes
-            ?.Where(s => s.AlarmSchemeType!.Key == alarmSchemeType)
-            ?.OrderByDescending(s => s.DateCreated)
-            ?.FirstOrDefault();
-    }
-    
-    private async Task<AlarmChannel?> GetChannel(int channelId)
-        => await db.AlarmChannels
-            .Include(c => c.AlarmSchemes)
-            .ThenInclude(s => s.AlarmSchedule)
-            .Include(c => c.AlarmSchemes)
-            .ThenInclude(s => s.AlarmSchemeType)
-            .SingleOrDefaultAsync(c => c.AlarmChannelId == channelId);
 }

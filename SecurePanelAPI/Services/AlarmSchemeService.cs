@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ReolinkAPI.Clients;
+using SecurePanelAPI.Utils;
 using SecurePanelDb;
 using SecurePanelDb.Models;
 using SecurePanelModels.AlarmScheme;
@@ -21,7 +22,7 @@ public class AlarmSchemeService(
 {
     public async Task<AlarmResult<AlarmSchemeDto>> GetAlarmScheme(AlarmSchemeQuery query)
     {
-        var scheme = await this.GetScheme(query);
+        var scheme = await ApiHttpUtils.GetScheme(db, query);
         if (scheme != null)
         {
             return AlarmResult<AlarmSchemeDto>.Success(this.GetAlarmSchemeDto(scheme));
@@ -57,17 +58,6 @@ public class AlarmSchemeService(
             return AlarmResult<bool>.Success(true);
         }
         return AlarmResult<bool>.Failure("Invalid alarm scheme");
-    }
-
-    public async Task<AlarmResult<List<AlarmSchemeTypeDto>>> GetAlarmSchemeTypes()
-    {
-        var alarmSchemeTypes = await db.AlarmSchemeTypes.Select(t => new AlarmSchemeTypeDto
-        {
-            AlarmSchemeTypeId = t.AlarmSchemeTypeId,
-            Key = t.Key,
-        }).ToListAsync();
-
-        return AlarmResult<List<AlarmSchemeTypeDto>>.Success(alarmSchemeTypes);
     }
 
     /// <summary>
@@ -159,22 +149,4 @@ public class AlarmSchemeService(
             .Select(g => g.First())
             .ToArrayAsync();
     }
-    
-    private async Task<AlarmScheme?> GetScheme(AlarmSchemeQuery query)
-    { 
-        string? alarmSchemeType = query.AlarmSchemeType!.ToString();
-        return (await this.GetChannel(query.ChannelId!.Value))
-            ?.AlarmSchemes
-            ?.Where(s => s.AlarmSchemeType!.Key == alarmSchemeType)
-            ?.OrderByDescending(s => s.DateCreated)
-            ?.FirstOrDefault();
-    }
-    
-    private async Task<AlarmChannel?> GetChannel(int channelId)
-        => await db.AlarmChannels
-            .Include(c => c.AlarmSchemes)
-            .ThenInclude(s => s.AlarmSchedule)
-            .Include(c => c.AlarmSchemes)
-            .ThenInclude(s => s.AlarmSchemeType)
-            .SingleOrDefaultAsync(c => c.AlarmChannelId == channelId);
 }
