@@ -2,6 +2,7 @@
 #include "camera_select_controller.h"
 #include "error_controller.h"
 #include "pin_controller.h"
+#include "ui_workflows.h"
 #include "api/auth_handler.h"
 #include "api/api_actions.h"
 #include "api/secure_panel_api.h"
@@ -13,7 +14,7 @@
 /**
  * Global workflow tracker for async Save/Load operations.
  */
-CameraSettingsWorkflow cameraSettingsActiveWorkflow = { nullptr, nullptr };
+extern UIWorkflow cameraSettingsWorkflow;
 
 /**
  * Dropdown Index Mapping
@@ -38,14 +39,14 @@ void go_back();
  * Triggers the background network task to save current settingsScheme to the DB.
  */
 void submit_settings() {
-    cameraSettingsActiveWorkflow.onSuccess = []() {
+    cameraSettingsWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
             open_camera_select_screen(currentAlarmScheme);
             lv_timer_del(timer);
         }, 200, NULL);
     };
 
-    cameraSettingsActiveWorkflow.onFailure = []() {
+    cameraSettingsWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen("Update Failed...", []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -116,14 +117,14 @@ static void camera_settings_btn_event_handler(lv_event_t * e) {
 }
 
 void go_back() {
-    cameraSettingsActiveWorkflow.onSuccess = []() {
+    cameraSettingsWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
             open_camera_select_screen(currentAlarmScheme);
             lv_timer_del(timer);
         }, 200, NULL);
     };
 
-    cameraSettingsActiveWorkflow.onFailure = []() {
+    cameraSettingsWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen("Failed to return. Retrying.", []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -192,8 +193,7 @@ void finish_camera_settings_loading_sequence() {
             update_camera_settings_ui();
         }
 
-        cameraSettingsActiveWorkflow.onSuccess = nullptr;
-        cameraSettingsActiveWorkflow.onFailure = nullptr;
+        cameraSettingsWorkflow.clear();
         
         // Reset the lock
         bool * lock = (bool*)timer->user_data;
@@ -208,7 +208,7 @@ void finish_camera_settings_loading_sequence() {
  * Checks the status of the background core (Core 0) and executes UI callbacks on Core 1.
  */
 void monitor_camera_settings_network_task() {
-    if (cameraSettingsActiveWorkflow.onSuccess == nullptr && cameraSettingsActiveWorkflow.onFailure == nullptr) {
+    if (cameraSettingsWorkflow.onSuccess == nullptr && cameraSettingsWorkflow.onFailure == nullptr) {
         return; 
     }
 
@@ -223,15 +223,15 @@ void monitor_camera_settings_network_task() {
         LoadingState finishedState = (LoadingState)(uintptr_t)t->user_data;
 
         if (finishedState == LoadingState::SUCCESS) {
-            if (cameraSettingsActiveWorkflow.onSuccess) cameraSettingsActiveWorkflow.onSuccess();
+            if (cameraSettingsWorkflow.onSuccess) cameraSettingsWorkflow.onSuccess();
             finish_camera_settings_loading_sequence();
         } 
         else {
-            if (cameraSettingsActiveWorkflow.onFailure) {
+            if (cameraSettingsWorkflow.onFailure) {
                 // Capture the callback and null it IMMEDIATELY 
                 // to prevent double-execution
-                auto failCb = cameraSettingsActiveWorkflow.onFailure;
-                cameraSettingsActiveWorkflow.onFailure = nullptr; 
+                auto failCb = cameraSettingsWorkflow.onFailure;
+                cameraSettingsWorkflow.onFailure = nullptr; 
                 
                 failCb(); 
                 finish_camera_settings_loading_sequence();
@@ -240,8 +240,8 @@ void monitor_camera_settings_network_task() {
             }
         }
 
-        cameraSettingsActiveWorkflow.onSuccess = nullptr;
-        cameraSettingsActiveWorkflow.onFailure = nullptr;
+        cameraSettingsWorkflow.onSuccess = nullptr;
+        cameraSettingsWorkflow.onFailure = nullptr;
         lv_timer_del(t);
     }, 100, (void*)(uintptr_t)state);
 }

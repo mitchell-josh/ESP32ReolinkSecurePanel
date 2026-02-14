@@ -1,6 +1,7 @@
 #include "pin_controller.h"
 #include "settings_controller.h"
 #include "error_controller.h"
+#include "ui_workflows.h"
 #include "api/auth_handler.h"
 #include "api/api_actions.h"
 #include "api/secure_panel_api.h"
@@ -13,7 +14,7 @@
  * Async Workflow for the Keypad.
  * Tracks what to do after an authentication or alarm-set command finishes.
  */
-PinWorkflow activeWorkflow = { nullptr, nullptr };
+extern UIWorkflow pinWorkflow;
 
 // Internal state for the keypad buffer and current operational mode
 static PinMode currentMode = PinMode::MODE_UNLOCK;
@@ -95,7 +96,7 @@ void confirm_change_pin() {
         return;
     }
 
-    activeWorkflow.onSuccess = []() {
+    pinWorkflow.onSuccess = []() {
         clear_authorised();
         pinBuffer = "";
         currentMode = PinMode::MODE_UNLOCK;
@@ -105,7 +106,7 @@ void confirm_change_pin() {
         }, 50, NULL);
     };
 
-    activeWorkflow.onFailure = []() {
+    pinWorkflow.onFailure = []() {
         open_error_screen(Texts::UPDATE_FAILED, []() {
             pinBuffer = "";
             confirmPinBuffer = "";
@@ -147,8 +148,8 @@ void on_auth_failure() {
 }
 
 void unlock_pin() {
-    activeWorkflow.onSuccess = on_unlock_success;
-    activeWorkflow.onFailure = on_auth_failure;
+    pinWorkflow.onSuccess = on_unlock_success;
+    pinWorkflow.onFailure = on_auth_failure;
 
     AuthCredentials credentials;
     credentials.alarmCode = pinBuffer;
@@ -195,7 +196,7 @@ static void pin_btn_event_handler(lv_event_t * e) {
 }
 
 void set_full_alarm() {
-    activeWorkflow.onSuccess = []() {
+    pinWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::ALARM_SET, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -208,7 +209,7 @@ void set_full_alarm() {
         }, 200, NULL);
     };
 
-    activeWorkflow.onFailure = []() {
+    pinWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -230,7 +231,7 @@ void set_full_alarm() {
 }
 
 void set_partial_alarm() {
-        activeWorkflow.onSuccess = []() {
+        pinWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::PARTIAL_SET, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -243,7 +244,7 @@ void set_partial_alarm() {
         }, 200, NULL);
     };
 
-    activeWorkflow.onFailure = []() {
+    pinWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -265,7 +266,7 @@ void set_partial_alarm() {
 }
 
 void set_disarmed() {
-        activeWorkflow.onSuccess = []() {
+    pinWorkflow.onSuccess = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::DISARMED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -278,7 +279,7 @@ void set_disarmed() {
         }, 200, NULL);
     };
 
-    activeWorkflow.onFailure = []() {
+    pinWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen(Texts::ALARM_SET_FAILED, []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -345,8 +346,7 @@ void finish_loading_sequence() {
             update_pin_ui();
         }
 
-        activeWorkflow.onSuccess = nullptr;
-        activeWorkflow.onFailure = nullptr;
+        pinWorkflow.clear();
         
         // Reset the lock
         bool * lock = (bool*)timer->user_data;
@@ -357,7 +357,7 @@ void finish_loading_sequence() {
 }
 
 void monitor_pin_network_task() {
-    if (activeWorkflow.onSuccess == nullptr && activeWorkflow.onFailure == nullptr) {
+    if (pinWorkflow.onSuccess == nullptr && pinWorkflow.onFailure == nullptr) {
         return; 
     }
     
@@ -372,16 +372,16 @@ void monitor_pin_network_task() {
         LoadingState finishedState = (LoadingState)(uintptr_t)t->user_data;
 
         if (finishedState == LoadingState::SUCCESS) {
-            if (activeWorkflow.onSuccess) activeWorkflow.onSuccess();
+            if (pinWorkflow.onSuccess) pinWorkflow.onSuccess();
             finish_loading_sequence(); // Handles transition back to Keypad
         } 
         else {
             pinBuffer = ""; 
-            if (activeWorkflow.onFailure) {
+            if (pinWorkflow.onFailure) {
                 // Capture the callback and null it IMMEDIATELY 
                 // to prevent double-execution
-                auto failCb = activeWorkflow.onFailure;
-                activeWorkflow.onFailure = nullptr; 
+                auto failCb = pinWorkflow.onFailure;
+                pinWorkflow.onFailure = nullptr; 
                 
                 failCb(); 
                 finish_loading_sequence();
@@ -390,8 +390,8 @@ void monitor_pin_network_task() {
             }
         }
 
-        activeWorkflow.onSuccess = nullptr;
-        activeWorkflow.onFailure = nullptr;
+        pinWorkflow.onSuccess = nullptr;
+        pinWorkflow.onFailure = nullptr;
         lv_timer_del(t);
     }, 100, (void*)(uintptr_t)state);
 }

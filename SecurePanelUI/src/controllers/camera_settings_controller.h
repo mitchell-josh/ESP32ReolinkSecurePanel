@@ -6,22 +6,6 @@
 #include <Arduino.h>
 
 /**
- * Function pointer type for UI callbacks.
- * Used to trigger specific UI transitions after a settings 'Save' or 'Load' operation.
- */
-typedef void (*CameraSettingsCallback)();
-
-/**
- * Encapsulates the Success and Failure logic for settings operations.
- * This structure allows the UI to react differently depending on whether 
- * the hardware accepted the new configuration.
- */
-struct CameraSettingsWorkflow {
-    CameraSettingsCallback onSuccess; // Logic to run if settings are successfully saved/loaded
-    CameraSettingsCallback onFailure; // Logic to run if a network or validation error occurs
-};
-
-/**
  * Binds the UI elements (dropdowns, save/cancel buttons) to the controller logic.
  * Should be called once during the initial system boot.
  */

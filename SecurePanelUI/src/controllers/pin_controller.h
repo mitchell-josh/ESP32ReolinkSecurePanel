@@ -4,13 +4,6 @@
 #include <lvgl.h>
 #include <functional>
 
-typedef void (*PinCallback)();
-
-struct PinWorkflow {
-    PinCallback onSuccess;
-    PinCallback onFailure;
-};
-
 enum PinMode {
     MODE_UNLOCK,
     MODE_UNLOCKED,

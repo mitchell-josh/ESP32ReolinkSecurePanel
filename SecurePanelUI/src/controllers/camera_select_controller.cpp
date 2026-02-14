@@ -2,14 +2,14 @@
 #include "camera_settings_controller.h"
 #include "pin_controller.h"
 #include "error_controller.h"
+#include "ui_workflows.h"
 #include "api/auth_handler.h"
 #include "api/api_actions.h"
 #include "api/secure_panel_api.h"
 #include "api/network_task.h"
 #include "ui/ui.h"
 
-// Workflow structure to manage Success/Failure callbacks for async UI transitions
-CameraSelectWorkflow cameraSelectActiveWorkflow = { nullptr, nullptr };
+extern UIWorkflow cameraSelectWorkflow;
 
 extern ChannelController channelController;
 
@@ -63,7 +63,7 @@ static void camera_btn_event_handler(lv_event_t * e) {
  * Wraps the transition in a network task to ensure session state is synced.
  */
 void open_pin_back() {
-    cameraSelectActiveWorkflow.onSuccess = []() {
+    cameraSelectWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
             // Check auth state to decide if we show the Locked or Unlocked keypad
             open_pin_screen(is_authorised() ? PinMode::MODE_UNLOCKED : PinMode::MODE_UNLOCK);
@@ -71,7 +71,7 @@ void open_pin_back() {
         }, 200, NULL);
     };
 
-    cameraSelectActiveWorkflow.onFailure = []() {
+    cameraSelectWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen("Failed to return. Retrying.", []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -93,14 +93,14 @@ void open_pin_back() {
 void open_camera_settings(Channel channel, AlarmSchemeEnum alarmScheme) {
     currentChannel = channel;
 
-    cameraSelectActiveWorkflow.onSuccess = []() {
+    cameraSelectWorkflow.onSuccess = []() {
         lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {
             open_camera_settings_screen(currentChannel, currentScheme);
             lv_timer_del(timer);
       }, 200, NULL); 
     };
 
-    cameraSelectActiveWorkflow.onFailure = []() {
+    cameraSelectWorkflow.onFailure = []() {
         lv_timer_create([](lv_timer_t * t) {
             open_error_screen("Unable to open camera settings", []() {
                 lv_timer_create([](lv_timer_t * retryTimer) {
@@ -152,9 +152,8 @@ void finish_camera_select_loading_sequence() {
     lv_timer_t * t = lv_timer_create([](lv_timer_t * timer) {   
         update_camera_select_ui();
 
-        cameraSelectActiveWorkflow.onSuccess = nullptr;
-        cameraSelectActiveWorkflow.onFailure = nullptr;
-        
+        cameraSelectWorkflow.clear();
+
         // Reset the lock
         bool * lock = (bool*)timer->user_data;
         *lock = false;
@@ -169,7 +168,7 @@ void finish_camera_select_loading_sequence() {
  * Dispatches Success/Failure callbacks on the main UI thread.
  */
 void monitor_camera_select_network_task() {
-    if (cameraSelectActiveWorkflow.onSuccess == nullptr && cameraSelectActiveWorkflow.onFailure == nullptr) {
+    if (cameraSelectWorkflow.onSuccess == nullptr && cameraSelectWorkflow.onFailure == nullptr) {
         return; 
     }
 
@@ -184,15 +183,15 @@ void monitor_camera_select_network_task() {
         LoadingState finishedState = (LoadingState)(uintptr_t)t->user_data;
 
         if (finishedState == LoadingState::SUCCESS) {
-            if (cameraSelectActiveWorkflow.onSuccess) cameraSelectActiveWorkflow.onSuccess();
+            if (cameraSelectWorkflow.onSuccess) cameraSelectWorkflow.onSuccess();
             finish_camera_select_loading_sequence(); // Handles transition back to Keypad
         } 
         else {
-            if (cameraSelectActiveWorkflow.onFailure) {
+            if (cameraSelectWorkflow.onFailure) {
                 // Capture the callback and null it IMMEDIATELY 
                 // to prevent double-execution
-                auto failCb = cameraSelectActiveWorkflow.onFailure;
-                cameraSelectActiveWorkflow.onFailure = nullptr; 
+                auto failCb = cameraSelectWorkflow.onFailure;
+                cameraSelectWorkflow.onFailure = nullptr; 
                 
                 failCb(); 
                 finish_camera_select_loading_sequence();
@@ -201,8 +200,8 @@ void monitor_camera_select_network_task() {
             }
         }
 
-        cameraSelectActiveWorkflow.onSuccess = nullptr;
-        cameraSelectActiveWorkflow.onFailure = nullptr;
+        cameraSelectWorkflow.onSuccess = nullptr;
+        cameraSelectWorkflow.onFailure = nullptr;
         lv_timer_del(t);
     }, 100, (void*)(uintptr_t)state);
 }
